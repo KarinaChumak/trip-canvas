@@ -1,0 +1,12 @@
+{
+  "name": "trip-canvas",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm --parallel --filter web --filter server dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "vitest run",
+    "test:e2e": "playwright test"
+  }
+}

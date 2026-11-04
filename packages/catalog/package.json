@@ -1,0 +1,14 @@
+{
+  "name": "catalog",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./catalog.ts",
+    "./schema": "./schema.ts",
+    "./prompt": "./prompt.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p ."
+  }
+}
