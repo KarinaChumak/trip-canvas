@@ -12,3 +12,6 @@ test-results/
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# Local design docs (not committed)
+docs/
