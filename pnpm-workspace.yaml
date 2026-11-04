@@ -4,7 +4,7 @@ packages:
 
 # pnpm 10 blocks install scripts by default; these need theirs.
 allowBuilds:
-  esbuild: set this to true or false
+  esbuild: true
 
 onlyBuiltDependencies:
   - better-sqlite3
