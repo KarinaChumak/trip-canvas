@@ -22,4 +22,13 @@ describe('parseEnv', () => {
   it('coerces PORT to a number', () => {
     expect(parseEnv({ ANTHROPIC_API_KEY: 'k', PORT: '9000' }).PORT).toBe(9000);
   });
+
+  it('requires ACCESS_CODE on Vercel', () => {
+    expect(() => parseEnv({ ANTHROPIC_API_KEY: 'k', VERCEL: '1' })).toThrow(/ACCESS_CODE/);
+    expect(parseEnv({ ANTHROPIC_API_KEY: 'k', VERCEL: '1', ACCESS_CODE: 'c' }).ACCESS_CODE).toBe('c');
+  });
+
+  it('leaves ACCESS_CODE optional locally', () => {
+    expect(parseEnv({ ANTHROPIC_API_KEY: 'k' }).ACCESS_CODE).toBeUndefined();
+  });
 });
