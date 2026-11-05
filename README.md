@@ -18,7 +18,6 @@ AI SDK · Hono on Node · Zod · SQLite (quota)
 packages/catalog   shared component catalog (server validates, web renders)
 apps/web           Vite + React client, port 5173, proxies /api → server
 apps/server        Hono + AI SDK, port 8787
-tests/e2e          Playwright smoke tests
 ```
 
 ## Getting started
@@ -41,4 +40,3 @@ API keys live only in `apps/server/.env`, which is git-ignored. See
 | `pnpm dev` | web and server in parallel |
 | `pnpm typecheck` | type-check every package |
 | `pnpm test` | Vitest unit tests |
-| `pnpm test:e2e` | Playwright smoke tests |

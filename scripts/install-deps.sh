@@ -24,7 +24,7 @@ pnpm --filter catalog add @json-render/core zod
 pnpm --filter catalog add -D typescript
 
 # tests
-pnpm add -D -w vitest @playwright/test typescript
+pnpm add -D -w vitest typescript
 
 # local env file for the server
 [ -f apps/server/.env ] || cp apps/server/.env.example apps/server/.env
