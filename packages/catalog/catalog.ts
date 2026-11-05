@@ -8,7 +8,7 @@ import { z } from 'zod';
 const IsoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Expected YYYY-MM-DD');
 const ClockTime = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Expected HH:MM, 24-hour');
 
-const PlaceCardProps = z.strictObject({
+const PlaceCardData = z.strictObject({
   name: z.string().min(1),
   category: z.string().min(1).describe('Short kind of place, e.g. "Museum", "Café", "Viewpoint"'),
   description: z.string().nullable().describe('One or two sentences on why it is worth a visit'),
@@ -19,7 +19,7 @@ const PlaceCardProps = z.strictObject({
 
 const WeatherCondition = z.enum(['sunny', 'partly-cloudy', 'cloudy', 'rain', 'storm', 'snow', 'fog']);
 
-const WeatherStripProps = z.strictObject({
+const WeatherStripData = z.strictObject({
   location: z.string().min(1),
   unit: z.enum(['C', 'F']),
   days: z
@@ -38,7 +38,7 @@ const WeatherStripProps = z.strictObject({
 
 const StopKind = z.enum(['sight', 'museum', 'food', 'coffee', 'shopping', 'nightlife', 'transport', 'other']);
 
-const DayItineraryProps = z.strictObject({
+const DayItineraryData = z.strictObject({
   title: z.string().min(1).describe('e.g. "A day in Alfama"'),
   city: z.string().min(1),
   date: IsoDate.nullable().describe('null when the user gave no date'),
@@ -60,23 +60,24 @@ const DayItineraryProps = z.strictObject({
 /** Catalog components: Zod props plus the one-line description the model sees. */
 export const components = {
   PlaceCard: {
-    props: PlaceCardProps,
+    props: PlaceCardData,
     description: 'A single place to visit, eat or drink, with category, rating and a short pitch.',
   },
   WeatherStrip: {
-    props: WeatherStripProps,
+    props: WeatherStripData,
     description: 'A daily forecast for one location over one to fourteen days.',
   },
   DayItinerary: {
-    props: DayItineraryProps,
+    props: DayItineraryData,
     description: 'A timed plan for one day in one city, as an ordered list of stops.',
   },
 } as const;
 
 export type ComponentName = keyof typeof components;
-export type PlaceCardProps = z.infer<typeof PlaceCardProps>;
-export type WeatherStripProps = z.infer<typeof WeatherStripProps>;
-export type DayItineraryProps = z.infer<typeof DayItineraryProps>;
+// The data each component shows; the web app's components take it as one prop.
+export type PlaceCardData = z.infer<typeof PlaceCardData>;
+export type WeatherStripData = z.infer<typeof WeatherStripData>;
+export type DayItineraryData = z.infer<typeof DayItineraryData>;
 
 /** The json-render catalog shared by the server (validation) and the web app (registry). */
 export const catalog = defineCatalog(schema, { components, actions: {} });
