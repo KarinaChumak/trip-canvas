@@ -1,4 +1,5 @@
 # Generated files: collapsed in GitHub diffs, still versioned.
 pnpm-lock.yaml linguist-generated=true
-# Copied in by the shadcn CLI (`shadcn add`), not hand-written.
+# Copied in by the shadcn CLI (`shadcn add`), not hand-written: shadcn/ui and AI Elements.
 apps/web/src/components/shadcn/** linguist-generated=true
+apps/web/src/components/ai-elements/** linguist-generated=true
