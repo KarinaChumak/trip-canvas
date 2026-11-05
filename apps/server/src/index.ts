@@ -1,12 +1,12 @@
 import { serve } from '@hono/node-server';
-import { Hono } from 'hono';
+import { createAnthropic } from '@ai-sdk/anthropic';
+import { createApp } from './app.js';
+import { loadEnv } from './lib/env.js';
 
-const app = new Hono();
+const env = loadEnv();
+const anthropic = createAnthropic({ apiKey: env.ANTHROPIC_API_KEY });
+const app = createApp({ model: anthropic(env.CHAT_MODEL) });
 
-// Placeholder until phase 1 adds POST /api/chat.
-app.get('/api/health', (c) => c.json({ ok: true }));
-
-const port = Number(process.env.PORT ?? 8787);
-serve({ fetch: app.fetch, port }, (info) => {
-  console.log(`server listening on http://localhost:${info.port}`);
+serve({ fetch: app.fetch, port: env.PORT }, (info) => {
+  console.log(`server listening on http://localhost:${info.port} (model ${env.CHAT_MODEL})`);
 });
