@@ -30,11 +30,16 @@ jobs:
             Review pull request #${{ github.event.pull_request.number }} in ${{ github.repository }}.
             The base branch is origin/${{ github.base_ref }}; compare HEAD against it.
 
-            Use /pr-review-toolkit:review-pr with these aspects: code errors types tests
+            Run the /pr-review-toolkit:review-pr skill (use the Skill tool) with the arguments: code errors types tests
+            It launches review subagents; let them finish before writing the summary.
+
+            The summary lists issues only: no "Strengths" or "what's good" section, no praise.
+            Group issues by severity (critical, important, minor), each with file:line,
+            the problem and a suggested fix. If there are no issues, write one line saying so.
 
             When the review is done, write the final summary to review.md and post it
             as a single PR comment:
             gh pr comment ${{ github.event.pull_request.number }} --body-file review.md
           claude_args: |
             --max-turns 30
-            --allowedTools "Read,Grep,Glob,Write,Bash(git diff:*),Bash(git log:*),Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr comment:*)"
+            --allowedTools "Skill,Agent,Task,Read,Grep,Glob,Write,Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr comment:*)"
