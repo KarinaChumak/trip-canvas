@@ -1,11 +1,15 @@
 import { readFileSync } from 'node:fs';
 import { convertToModelMessages, type ModelMessage, type UIMessage } from 'ai';
+import { buildCatalogPrompt } from 'catalog/prompt';
 
 /** Context rule from the design: only the last 20 messages reach the model. */
 export const MAX_HISTORY = 20;
 
-// Read once at startup; the prompt is static until the catalog joins it in phase 2.
-const SYSTEM_PROMPT = readFileSync(new URL('../prompts/system.md', import.meta.url), 'utf8').trim();
+// Built once at startup: the base prompt, then the catalog part (design: context assembly, step 1).
+const SYSTEM_PROMPT = [
+  readFileSync(new URL('../prompts/system.md', import.meta.url), 'utf8').trim(),
+  buildCatalogPrompt(),
+].join('\n\n');
 
 export type ChatContext = { system: string; messages: ModelMessage[] };
 
