@@ -1,0 +1,4 @@
+# Generated files: collapsed in GitHub diffs, still versioned.
+pnpm-lock.yaml linguist-generated=true
+# Copied in by the shadcn CLI (`shadcn add`), not hand-written.
+apps/web/src/components/shadcn/** linguist-generated=true
