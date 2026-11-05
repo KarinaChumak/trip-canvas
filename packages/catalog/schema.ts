@@ -30,6 +30,9 @@ export const EmitComponentInput = z.strictObject({
 /** One catalog component, as the model passes it to `emit_component`. */
 export type EmitComponentInput = z.infer<typeof EmitComponentInput>;
 
+/** What `emit_component` returns to the model: the web app shows only `ok` results. */
+export type EmitComponentOutput = { ok: true } | { error: string };
+
 /**
  * The `emit_component` input as strict JSON Schema: every object closed with
  * `additionalProperties: false` and every property required (optional ones are nullable).
@@ -70,11 +73,24 @@ export function validateEmitComponent(input: unknown): ValidationResult {
   return validateSpec(toSpec(parsed.data));
 }
 
-/** Checks a stored or received spec, e.g. before rendering a block from IndexedDB. */
+/**
+ * Checks a stored or received spec, e.g. before rendering a block from IndexedDB.
+ * `catalog.validate()` checks the tree and component names but lets any props
+ * through (they may hold `$state` expressions), so each element's props are
+ * parsed against the catalog too.
+ */
 export function validateSpec(spec: unknown): ValidationResult {
   const result = catalog.validate(spec);
   if (!result.success || !result.data) {
     return { ok: false, error: result.error ? z.prettifyError(result.error) : 'Invalid spec' };
   }
-  return { ok: true, spec: result.data as Spec };
+
+  const checked = result.data as Spec;
+  for (const [key, element] of Object.entries(checked.elements)) {
+    const definition = components[element.type as ComponentName];
+    if (!definition) return { ok: false, error: `Unknown component "${element.type}" at elements.${key}` };
+    const props = definition.props.safeParse(element.props);
+    if (!props.success) return { ok: false, error: `At elements.${key}.props:\n${z.prettifyError(props.error)}` };
+  }
+  return { ok: true, spec: checked };
 }

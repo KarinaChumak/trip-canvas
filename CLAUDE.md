@@ -26,6 +26,13 @@ This is a demo Gen AI app.
 - Don't spread `...props`; destructure and pass each prop explicitly unless forwarding everything is genuinely needed.
 - Generated component folders (see above) are exempt.
 
+## React components
+- No render functions (`renderPart(part)` and the like) that return JSX: make them components (`<MessagePart part={part} />`) with their own props type.
+
+## Data loading
+- Never load data in a `useEffect` and then put it into state with `setState`. Load async data (IndexedDB, HTTP, anything awaited) with TanStack Query (`useQuery`, `useMutation`) instead.
+- Name hooks that wrap them after what they are: `use<Thing>Query` for `useQuery`, `use<Action>Mutation` for `useMutation` (e.g. `useSavedMessagesQuery`, `useSaveMessagesMutation`).
+
 ## Code review
 - Skip generated code when reviewing a PR or a diff; do not comment on it or count it toward PR size:
   - `apps/web/src/components/shadcn/**` and `apps/web/src/components/ai-elements/**` — copied in by the shadcn CLI.
