@@ -14,7 +14,6 @@ This is a demo Gen AI app.
 
 ## Tests
 - Never colocate tests with source files. Put unit tests in the package's `test/` folder, mirroring the `src/` structure: `apps/server/src/routes/chat.ts` → `apps/server/test/routes/chat.test.ts`.
-- End-to-end tests go in `tests/e2e/` at the repo root.
 
 ## UI components
 - shadcn/ui components live in `apps/web/src/components/shadcn/`. They are added with the shadcn CLI (`pnpm dlx shadcn@<version> add <name>` from `apps/web`), never written by hand.

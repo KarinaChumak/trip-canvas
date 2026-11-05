@@ -6,11 +6,9 @@
     "dev": "pnpm --parallel --filter web --filter server dev",
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
-    "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test": "vitest run"
   },
   "devDependencies": {
-    "@playwright/test": "^1.64.1",
     "vitest": "^5.1.0"
   }
 }

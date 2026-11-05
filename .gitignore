@@ -6,8 +6,6 @@ dist/
 !.env.example
 *.sqlite
 *.db
-playwright-report/
-test-results/
 .DS_Store
 .idea/
 .vscode/*
