@@ -1,0 +1,71 @@
+import { describe, expect, it } from 'vitest';
+import { componentNames } from '../catalog.js';
+import { emitComponentJsonSchema, ROOT_KEY, toSpec, validateEmitComponent, validateSpec } from '../schema.js';
+import { validInputs } from './fixtures.js';
+
+/** Every object in a JSON Schema, depth first. */
+function objectsIn(node: unknown): Record<string, unknown>[] {
+  if (Array.isArray(node)) return node.flatMap(objectsIn);
+  if (node === null || typeof node !== 'object') return [];
+  const record = node as Record<string, unknown>;
+  const nested = Object.values(record).flatMap(objectsIn);
+  return record.type === 'object' ? [record, ...nested] : nested;
+}
+
+describe('emitComponentJsonSchema', () => {
+  it('has one anyOf branch per catalog component', () => {
+    type Branch = { properties: { type: { const: string } } };
+    const { component } = emitComponentJsonSchema.properties as { component: { anyOf: Branch[] } };
+    const types = component.anyOf.map((branch) => branch.properties.type.const);
+    expect(types).toEqual(componentNames);
+    expect(JSON.stringify(emitComponentJsonSchema)).not.toContain('oneOf');
+  });
+
+  it('is strict: every object is closed and requires all its properties', () => {
+    const objects = objectsIn(emitComponentJsonSchema);
+    expect(objects.length).toBeGreaterThan(5);
+    for (const object of objects) {
+      expect(object.additionalProperties).toBe(false);
+      expect(object.required).toEqual(Object.keys(object.properties as object));
+    }
+  });
+});
+
+describe('validateEmitComponent', () => {
+  it.each(componentNames)('accepts a valid %s and wraps it into a one-element spec', (name) => {
+    const result = validateEmitComponent(validInputs[name]);
+    expect(result).toEqual({ ok: true, spec: toSpec(validInputs[name]) });
+    if (result.ok) expect(result.spec.elements[ROOT_KEY]?.type).toBe(name);
+  });
+
+  it('rejects an unknown component type', () => {
+    const result = validateEmitComponent({ component: { type: 'Carousel', props: {} } });
+    expect(result).toMatchObject({ ok: false, error: expect.stringContaining('component.type') });
+  });
+
+  it('names each bad field by path', () => {
+    const { props } = validInputs.DayItinerary.component;
+    const broken = {
+      component: { type: 'DayItinerary', props: { ...props, stops: [{ ...props.stops[0], time: '9.30am' }] } },
+    };
+    const result = validateEmitComponent(broken);
+    expect(result).toMatchObject({ ok: false, error: expect.stringContaining('component.props.stops[0].time') });
+  });
+
+  it('rejects missing nullable fields and extra fields', () => {
+    const { description: _dropped, ...rest } = validInputs.PlaceCard.component.props;
+    expect(validateEmitComponent({ component: { type: 'PlaceCard', props: rest } }).ok).toBe(false);
+    expect(validateEmitComponent({ component: { type: 'PlaceCard', props: { ...rest, description: null, extra: 1 } } }).ok).toBe(false);
+  });
+});
+
+describe('validateSpec', () => {
+  it('accepts a spec built by toSpec', () => {
+    expect(validateSpec(toSpec(validInputs.WeatherStrip)).ok).toBe(true);
+  });
+
+  it('rejects a stored spec whose component left the catalog', () => {
+    const spec = { root: 'root', elements: { root: { type: 'OldWidget', props: {}, children: [] } } };
+    expect(validateSpec(spec).ok).toBe(false);
+  });
+});
