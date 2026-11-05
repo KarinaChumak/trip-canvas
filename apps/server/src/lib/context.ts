@@ -1,13 +1,13 @@
-import { readFileSync } from 'node:fs';
 import { convertToModelMessages, type ModelMessage, type UIMessage } from 'ai';
 import { buildCatalogPrompt } from 'catalog/prompt';
+import { BASE_SYSTEM_PROMPT } from '../prompts/system.js';
 
 /** Context rule from the design: only the last 20 messages reach the model. */
 export const MAX_HISTORY = 20;
 
 // Built once at startup: the base prompt, then the catalog part (design: context assembly, step 1).
 const SYSTEM_PROMPT = [
-  readFileSync(new URL('../prompts/system.md', import.meta.url), 'utf8').trim(),
+  BASE_SYSTEM_PROMPT.trim(),
   buildCatalogPrompt(),
 ].join('\n\n');
 
