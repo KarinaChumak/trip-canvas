@@ -3,9 +3,8 @@ import {
   emitComponentJsonSchema,
   validateEmitComponent,
   type EmitComponentInput,
+  type EmitComponentOutput,
 } from 'catalog/schema';
-
-export type EmitComponentOutput = { ok: true } | { error: string };
 
 /**
  * The model calls this to hand one catalog component to the web app, which displays

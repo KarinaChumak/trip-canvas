@@ -64,6 +64,12 @@ describe('validateSpec', () => {
     expect(validateSpec(toSpec(validInputs.WeatherStrip)).ok).toBe(true);
   });
 
+  it('rejects a stored spec whose props no longer match the catalog', () => {
+    const spec = toSpec(validInputs.PlaceCard);
+    (spec.elements[ROOT_KEY]!.props as Record<string, unknown>).rating = 'five';
+    expect(validateSpec(spec)).toMatchObject({ ok: false, error: expect.stringContaining('rating') });
+  });
+
   it('rejects a stored spec whose component left the catalog', () => {
     const spec = { root: 'root', elements: { root: { type: 'OldWidget', props: {}, children: [] } } };
     expect(validateSpec(spec).ok).toBe(false);

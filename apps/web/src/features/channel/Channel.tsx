@@ -5,35 +5,67 @@ import {
   ConversationContent,
   ConversationScrollButton,
 } from '@/components/ai-elements/conversation';
+import { Spinner } from '@/components/shadcn/spinner';
+import type { ChatMessage } from '@/lib/chat';
+import { useSaveMessagesMutation, useSavedMessagesQuery } from '@/lib/chat-storage';
 import { ChatError } from './ChatError';
 import { Composer } from './Composer';
 import { EmptyCanvas } from './EmptyCanvas';
 import { MessageList } from './MessageList';
 
 // Created once: a new transport per render would reset the chat.
-const transport = new DefaultChatTransport({ api: '/api/chat' });
+const transport = new DefaultChatTransport<ChatMessage>({ api: '/api/chat' });
+
+/** Waits for the saved chat to load from IndexedDB, then shows it. */
+export function Channel() {
+  const { data: savedMessages } = useSavedMessagesQuery();
+
+  if (!savedMessages) {
+    return (
+      <div className="flex h-dvh items-center justify-center">
+        <Spinner aria-label="Loading" />
+      </div>
+    );
+  }
+  return <MainChannel initialMessages={savedMessages} />;
+}
+
+type MainChannelProps = {
+  /** Read once: useChat owns the messages from here on. */
+  initialMessages: ChatMessage[];
+};
 
 /** The main channel: conversation (or empty state) above, composer below. */
-export function Channel() {
-  const { messages, sendMessage, status, stop, error, regenerate } = useChat({ transport });
+function MainChannel({ initialMessages }: MainChannelProps) {
+  const { mutate: saveMessages } = useSaveMessagesMutation();
+  const { messages, sendMessage, status, stop, error, regenerate } = useChat<ChatMessage>({
+    transport,
+    messages: initialMessages,
+    // Saved once per reply (also after Stop or an error), not on every token.
+    onFinish: ({ messages: all }) => saveMessages(all),
+  });
   const busy = status === 'submitted' || status === 'streaming';
   const send = (text: string) => void sendMessage({ text });
 
   return (
-    <div className="mx-auto flex h-dvh w-full max-w-3xl flex-col px-4">
+    // The conversation scrolls across the full window width, so its scrollbar sits at
+    // the window edge; only the content inside is limited to the column width.
+    <div className="flex h-dvh w-full flex-col">
       {messages.length === 0 ? (
         <EmptyCanvas onPick={send} />
       ) : (
         // Sticks to the bottom while text streams in, with a jump-to-latest button.
         <Conversation>
-          <ConversationContent>
+          <ConversationContent className="mx-auto w-full max-w-3xl px-8">
             <MessageList messages={messages} waiting={status === 'submitted'} />
             {error && <ChatError onRetry={() => void regenerate()} />}
           </ConversationContent>
           <ConversationScrollButton />
         </Conversation>
       )}
-      <Composer busy={busy} onSend={send} onStop={stop} />
+      <div className="mx-auto w-full max-w-3xl px-4">
+        <Composer busy={busy} onSend={send} onStop={stop} />
+      </div>
     </div>
   );
 }
