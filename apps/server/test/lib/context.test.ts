@@ -7,7 +7,7 @@ function userMessage(i: number): UIMessage {
 }
 
 describe('buildContext', () => {
-  it('uses the system prompt from prompts/system.md', async () => {
+  it('starts with the base system prompt', async () => {
     const { system } = await buildContext([userMessage(0)]);
     expect(system).toMatch(/^You are Trip canvas/);
   });
