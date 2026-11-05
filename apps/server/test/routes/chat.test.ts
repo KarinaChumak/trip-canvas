@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { simulateReadableStream } from 'ai';
 import { MockLanguageModelV4 } from 'ai/test';
-import { createApp } from '../../src/app.js';
+import { createApp } from '../../src/create-app.js';
 
 const usage = {
   inputTokens: { total: 3, noCache: 3, cacheRead: undefined, cacheWrite: undefined },
