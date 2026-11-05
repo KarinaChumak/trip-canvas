@@ -1,11 +1,22 @@
 import { z } from 'zod';
 
-const EnvSchema = z.object({
-  ANTHROPIC_API_KEY: z.string({ error: 'is required' }).trim().min(1, 'is required'),
-  PORT: z.coerce.number().int().positive().default(8787),
-  // Small, fast model by default; override in .env if answers are weak.
-  CHAT_MODEL: z.string().trim().min(1).default('claude-haiku-5-5'),
-});
+const EnvSchema = z
+  .object({
+    ANTHROPIC_API_KEY: z.string({ error: 'is required' }).trim().min(1, 'is required'),
+    PORT: z.coerce.number().int().positive().default(8787),
+    // Small, fast model by default; override in .env if answers are weak.
+    CHAT_MODEL: z.string().trim().min(1).default('claude-haiku-5-5'),
+    // Shared code the web app sends as a bearer token. Unset locally: no check.
+    ACCESS_CODE: z.string().trim().min(1).optional(),
+    // Set to "1" by Vercel on every deployment.
+    VERCEL: z.string().optional(),
+  })
+  // A deployed server without a code would let anyone spend the Anthropic key.
+  .refine((env) => !env.VERCEL || env.ACCESS_CODE, {
+    path: ['ACCESS_CODE'],
+    message: 'is required on Vercel',
+  })
+  .transform(({ VERCEL: _vercel, ...env }) => env);
 
 export type Env = z.infer<typeof EnvSchema>;
 

@@ -9,6 +9,9 @@ import { loadEnv } from './lib/env.js';
 const env = loadEnv();
 const anthropic = createAnthropic({ apiKey: env.ANTHROPIC_API_KEY });
 
-const app: Hono = createApp({ model: anthropic(env.CHAT_MODEL) });
+const app: Hono = createApp({
+  model: anthropic(env.CHAT_MODEL),
+  accessCode: env.ACCESS_CODE,
+});
 
 export default app;
