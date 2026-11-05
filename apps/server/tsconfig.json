@@ -1,7 +1,10 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "types": ["node"]
+    "types": ["node"],
+    // Vercel compiles through a temp tsconfig in /tmp that extends this one; without an
+    // explicit typeRoots, @types/node is looked up from /tmp and the build fails (TS2688).
+    "typeRoots": ["./node_modules/@types"]
   },
   "include": ["src", "test"]
 }
