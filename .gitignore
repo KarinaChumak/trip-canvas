@@ -13,3 +13,6 @@ dist/
 
 # Local design docs (not committed)
 docs/
+
+# Vercel CLI project link and build output
+.vercel/
