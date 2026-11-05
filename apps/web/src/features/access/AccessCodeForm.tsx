@@ -14,7 +14,13 @@ import { useUnlockMutation } from '@/lib/access-code';
 /** Asks for the shared demo code; a wrong one shows an error under the field. */
 export function AccessCodeForm() {
   const [code, setCode] = useState('');
-  const { mutate: unlock, data: accepted, isPending, isError } = useUnlockMutation();
+  const { mutate: unlock, reset, data: accepted, isPending, isError } = useUnlockMutation();
+  // One message at a time, from the latest attempt; cleared as soon as the user types.
+  const error = isError
+    ? 'Could not reach the server. Try again.'
+    : accepted === false
+      ? 'That code is not right.'
+      : null;
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
@@ -32,7 +38,7 @@ export function AccessCodeForm() {
           {/* A form so Enter submits; shadcn has no form component without a form library. */}
           <form onSubmit={submit}>
             <FieldGroup>
-              <Field data-invalid={accepted === false || undefined}>
+              <Field data-invalid={error ? true : undefined}>
                 <FieldLabel htmlFor="access-code">Access code</FieldLabel>
                 <Input
                   id="access-code"
@@ -40,11 +46,13 @@ export function AccessCodeForm() {
                   autoComplete="off"
                   autoFocus
                   value={code}
-                  onChange={(event) => setCode(event.target.value)}
-                  aria-invalid={accepted === false || undefined}
+                  onChange={(event) => {
+                    setCode(event.target.value);
+                    reset();
+                  }}
+                  aria-invalid={error ? true : undefined}
                 />
-                {accepted === false && <FieldError>That code is not right.</FieldError>}
-                {isError && <FieldError>Could not reach the server. Try again.</FieldError>}
+                {error && <FieldError>{error}</FieldError>}
               </Field>
               <Button type="submit" disabled={isPending || !code.trim()}>
                 {isPending ? 'Checking…' : 'Continue'}

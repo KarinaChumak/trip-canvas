@@ -14,6 +14,10 @@ type AccessGateProps = {
 export function AccessGate({ children }: AccessGateProps) {
   const { data: allowed, isError, refetch } = useAccessQuery();
 
+  // Once accepted, a failed recheck keeps the chat mounted: only a rejection (false)
+  // swaps it for the form, so a network blip never loses the conversation.
+  if (allowed) return children;
+  if (allowed === false) return <AccessCodeForm />;
   if (isError) {
     return (
       <div className="mx-auto flex h-dvh max-w-md items-center px-4">
@@ -29,12 +33,9 @@ export function AccessGate({ children }: AccessGateProps) {
       </div>
     );
   }
-  if (allowed === undefined) {
-    return (
-      <div className="flex h-dvh items-center justify-center">
-        <Spinner aria-label="Loading" />
-      </div>
-    );
-  }
-  return allowed ? children : <AccessCodeForm />;
+  return (
+    <div className="flex h-dvh items-center justify-center">
+      <Spinner aria-label="Loading" />
+    </div>
+  );
 }

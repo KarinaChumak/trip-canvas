@@ -1,6 +1,6 @@
 import { useChat } from '@ai-sdk/react';
 import { useQueryClient } from '@tanstack/react-query';
-import { DefaultChatTransport } from 'ai';
+import { APICallError, DefaultChatTransport } from 'ai';
 import {
   Conversation,
   ConversationContent,
@@ -46,9 +46,13 @@ function MainChannel({ initialMessages }: MainChannelProps) {
     messages: initialMessages,
     // Saved once per reply (also after Stop or an error), not on every token.
     onFinish: ({ messages: all }) => saveMessages(all),
-    // The code may have changed on the server: recheck it, so a rejected one brings
-    // back the code form instead of failing every message.
-    onError: () => void queryClient.invalidateQueries({ queryKey: accessQueryKey }),
+    // A 401 means the code changed on the server: recheck it, so the code form comes
+    // back instead of every message failing. Other errors show the Retry alert.
+    onError: (error) => {
+      if (APICallError.isInstance(error) && error.statusCode === 401) {
+        void queryClient.invalidateQueries({ queryKey: accessQueryKey });
+      }
+    },
   });
   const busy = status === 'submitted' || status === 'streaming';
   const send = (text: string) => void sendMessage({ text });
