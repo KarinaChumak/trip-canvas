@@ -3,6 +3,7 @@ import { JSONUIProvider, Renderer } from '@json-render/react';
 import { validateEmitComponent, type EmitComponentInput } from 'catalog/schema';
 import { Skeleton } from '@/components/shadcn/skeleton';
 import { registry } from '@/registry';
+import { BlockErrorBoundary } from './BlockErrorBoundary';
 import { FallbackBlock } from './FallbackBlock';
 
 /** Placeholder while a component's spec streams in. */
@@ -23,11 +24,13 @@ export function Block({ input }: BlockProps) {
   const result = useMemo(() => validateEmitComponent(input), [input]);
 
   // Saved input may not even have the current shape, hence the optional chaining.
-  if (!result.ok) return <FallbackBlock type={input?.component?.type ?? 'component'} />;
+  if (!result.ok) return <FallbackBlock type={input?.component?.type ?? 'component'} reason="outdated" />;
 
   return (
-    <JSONUIProvider registry={registry}>
-      <Renderer spec={result.spec} registry={registry} />
-    </JSONUIProvider>
+    <BlockErrorBoundary type={input.component.type}>
+      <JSONUIProvider registry={registry}>
+        <Renderer spec={result.spec} registry={registry} />
+      </JSONUIProvider>
+    </BlockErrorBoundary>
   );
 }
