@@ -2,6 +2,7 @@ import { createAnthropic } from '@ai-sdk/anthropic';
 import type { Hono } from 'hono';
 import { createApp } from './create-app.js';
 import { memoryCache, redisCache } from './lib/cache.js';
+import { createServices } from './services/index.js';
 import { createTools } from './tools/index.js';
 import { loadEnv } from './lib/env.js';
 
@@ -13,10 +14,11 @@ const anthropic = createAnthropic({ apiKey: env.ANTHROPIC_API_KEY });
 
 // Composition root: everything is created here, once, and handed down.
 const cache = env.redis ? redisCache(env.redis) : memoryCache();
+const services = createServices({ cache, env });
 
 const app: Hono = createApp({
   model: anthropic(env.CHAT_MODEL),
-  tools: createTools(),
+  tools: createTools(services),
   cache,
   accessCode: env.ACCESS_CODE,
 });

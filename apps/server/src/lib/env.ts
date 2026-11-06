@@ -8,6 +8,8 @@ const EnvSchema = z
     CHAT_MODEL: z.string().trim().min(1).default('claude-haiku-5-5'),
     // Shared code the web app sends as a bearer token. Unset locally: no check.
     ACCESS_CODE: z.string().trim().min(1).optional(),
+    // Nominatim asks for a User-Agent that identifies the app.
+    NOMINATIM_USER_AGENT: z.string().trim().min(1).default('trip-canvas-demo'),
     // Cache store. Unset locally: an in-memory cache. Vercel's Upstash integration
     // may inject the KV_* names instead, as @upstash/redis also accepts.
     UPSTASH_REDIS_REST_URL: z.url().optional(),

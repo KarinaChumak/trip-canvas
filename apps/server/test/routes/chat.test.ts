@@ -3,6 +3,7 @@ import { simulateReadableStream } from 'ai';
 import { MockLanguageModelV4 } from 'ai/test';
 import { createApp } from '../../src/create-app.js';
 import { memoryCache } from '../../src/lib/cache.js';
+import { createServices } from '../../src/services/index.js';
 import { createTools } from '../../src/tools/index.js';
 
 const usage = {
@@ -27,7 +28,7 @@ function mockModel(words: string[]) {
 
 function appWith(model: MockLanguageModelV4) {
   const cache = memoryCache();
-  const tools = createTools();
+  const tools = createTools(createServices({ cache, env: { NOMINATIM_USER_AGENT: 'test' } }));
   return createApp({ model, tools, cache });
 }
 

@@ -16,6 +16,7 @@ describe('parseEnv', () => {
       ANTHROPIC_API_KEY: 'test-key',
       PORT: 8787,
       CHAT_MODEL: 'claude-haiku-5-5',
+      NOMINATIM_USER_AGENT: expect.stringContaining('trip-canvas'),
       redis: undefined,
     });
   });

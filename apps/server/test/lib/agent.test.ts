@@ -3,9 +3,11 @@ import { simulateReadableStream, type StepResult } from 'ai';
 import { MockLanguageModelV4 } from 'ai/test';
 import { EMIT_COMPONENT_TOOL } from 'catalog/schema';
 import { activeToolsFor, MAX_INVALID_COMPONENTS, streamAgent } from '../../src/lib/agent.js';
+import { memoryCache } from '../../src/lib/cache.js';
+import { createServices } from '../../src/services/index.js';
 import { createTools, type AgentTools } from '../../src/tools/index.js';
 
-const tools = createTools();
+const tools = createTools(createServices({ cache: memoryCache(), env: { NOMINATIM_USER_AGENT: 'test' } }));
 
 const usage = {
   inputTokens: { total: 3, noCache: 3, cacheRead: undefined, cacheWrite: undefined },
@@ -25,7 +27,7 @@ describe('activeToolsFor', () => {
 
   it(`drops emit_component after ${MAX_INVALID_COMPONENTS} invalid components`, () => {
     const steps = Array.from({ length: MAX_INVALID_COMPONENTS }, () => emitStep({ error: 'bad' }));
-    expect(activeToolsFor(steps, tools)).toEqual(['getMockDay']);
+    expect(activeToolsFor(steps, tools)).toEqual(['getMockDay', 'getWeather']);
   });
 });
 

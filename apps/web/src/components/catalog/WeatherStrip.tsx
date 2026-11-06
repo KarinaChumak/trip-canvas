@@ -9,7 +9,8 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import type { WeatherStripData } from 'catalog';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/shadcn/card';
+import { Button } from '@/components/shadcn/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/shadcn/card';
 import { Item, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from '@/components/shadcn/item';
 import { formatDay } from '@/lib/format';
 
@@ -61,6 +62,14 @@ export function WeatherStrip({ forecast }: WeatherStripProps) {
           })}
         </ItemGroup>
       </CardContent>
+      {/* Open-Meteo's licence (CC BY 4.0) asks for this credit. */}
+      <CardFooter>
+        <Button asChild size="sm" variant="link" className="px-0 text-muted-foreground">
+          <a href="https://open-meteo.com/" target="_blank" rel="noreferrer">
+            Weather data by Open-Meteo
+          </a>
+        </Button>
+      </CardFooter>
     </Card>
   );
 }
