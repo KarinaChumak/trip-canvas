@@ -11,11 +11,11 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import type { WeatherStripData } from 'catalog';
-import { Button } from '@/components/shadcn/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/shadcn/card';
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/shadcn/card';
 import { Item, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from '@/components/shadcn/item';
 import { formatDay } from '@/lib/format';
 import { cn } from '@/lib/utils';
+import { SourceCredit } from './SourceCredit';
 
 type Condition = WeatherStripData['days'][number]['condition'];
 
@@ -50,6 +50,10 @@ export function WeatherStrip({ forecast }: WeatherStripProps) {
           {forecast.location}
         </CardTitle>
         <CardDescription>{days === 1 ? 'Forecast' : `${days}-day forecast`}</CardDescription>
+        <CardAction>
+          {/* Open-Meteo's licence (CC BY 4.0) asks for this credit. */}
+          <SourceCredit credit="Weather data by Open-Meteo" href="https://open-meteo.com/" />
+        </CardAction>
       </CardHeader>
       <CardContent>
         <ItemGroup className="grid grid-cols-[repeat(auto-fill,minmax(6rem,1fr))] gap-2">
@@ -77,14 +81,6 @@ export function WeatherStrip({ forecast }: WeatherStripProps) {
           })}
         </ItemGroup>
       </CardContent>
-      {/* Open-Meteo's licence (CC BY 4.0) asks for this credit. */}
-      <CardFooter>
-        <Button asChild size="sm" variant="link" className="px-0 text-muted-foreground">
-          <a href="https://open-meteo.com/" target="_blank" rel="noreferrer">
-            Weather data by Open-Meteo
-          </a>
-        </Button>
-      </CardFooter>
     </Card>
   );
 }
