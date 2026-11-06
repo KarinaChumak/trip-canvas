@@ -9,7 +9,8 @@ const SEARCH: PlaceSearch = { latitude: 38.712, longitude: -9.13, radiusMeters: 
 const PLACE: NearbyPlace = { id: 'N1', name: 'Taberna Sal Grosso', category: 'Restaurant', latitude: 38.712, longitude: -9.129, distanceMeters: 421 };
 
 function searchPlacesTool(places: NearbyPlace[]) {
-  const openTripMap: OpenTripMapClient = { searchPlaces: vi.fn(async () => places) };
+  // The tool never loads details: each PlaceCard does that itself.
+  const openTripMap: OpenTripMapClient = { searchPlaces: vi.fn(async () => places), getPlaceDetails: vi.fn() };
   return { tool: createSearchPlacesTool({ openTripMap }), openTripMap };
 }
 
@@ -19,6 +20,7 @@ describe('searchPlaces tool', () => {
 
     expect(await tool.execute!(SEARCH, options)).toEqual({ places: [PLACE], source: 'OpenTripMap' });
     expect(openTripMap.searchPlaces).toHaveBeenCalledWith(SEARCH, undefined);
+    expect(openTripMap.getPlaceDetails).not.toHaveBeenCalled();
   });
 
   it('returns an error the model can act on when nothing is found', async () => {

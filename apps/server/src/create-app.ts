@@ -5,6 +5,8 @@ import type { LanguageModel } from 'ai';
 import type { Cache } from './lib/cache.js';
 import { requireAccessCode } from './middleware/access-code.js';
 import { createChatRoute } from './routes/chat.js';
+import { createPlacesRoute } from './routes/places.js';
+import type { Services } from './services/index.js';
 import type { AgentTools } from './tools/index.js';
 
 export type AppDeps = {
@@ -12,6 +14,8 @@ export type AppDeps = {
   model: LanguageModel;
   /** The tools the agent can call, already wired to their services. */
   tools: AgentTools;
+  /** Serves place details to the web app's PlaceCards, outside the agent loop. */
+  openTripMap: Services['openTripMap'];
   /** Redis on Vercel, memory locally and in tests; the keepalive route writes to it. */
   cache: Cache;
   /** When set, every /api route except health and keepalive needs `Authorization: Bearer <code>`. */
@@ -19,7 +23,7 @@ export type AppDeps = {
 };
 
 /** Builds the Hono app with every route; no server is started here. */
-export function createApp({ model, tools, cache, accessCode }: AppDeps) {
+export function createApp({ model, tools, openTripMap, cache, accessCode }: AppDeps) {
   const app = new Hono();
 
   // One line per request: method, path, status and time.
@@ -35,6 +39,7 @@ export function createApp({ model, tools, cache, accessCode }: AppDeps) {
   // The web app calls this to check a code before showing the chat.
   app.get('/api/access', (c) => c.json({ ok: true }));
   app.route('/api', createChatRoute({ model, tools }));
+  app.route('/api', createPlacesRoute({ openTripMap }));
 
   return app;
 }

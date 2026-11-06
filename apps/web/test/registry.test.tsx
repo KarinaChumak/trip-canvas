@@ -1,15 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { JSONUIProvider, Renderer } from '@json-render/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { toSpec, type EmitComponentInput } from 'catalog/schema';
 import { registry } from '@/registry';
 
 // Renderer reads state, visibility and actions from these providers.
 function render(input: EmitComponentInput) {
   return renderToStaticMarkup(
-    <JSONUIProvider registry={registry}>
-      <Renderer spec={toSpec(input)} registry={registry} />
-    </JSONUIProvider>,
+    // PlaceCard loads its details through TanStack Query, as in the app.
+    <QueryClientProvider client={new QueryClient()}>
+      <JSONUIProvider registry={registry}>
+        <Renderer spec={toSpec(input)} registry={registry} />
+      </JSONUIProvider>
+    </QueryClientProvider>,
   );
 }
 
@@ -21,6 +25,7 @@ describe('registry', () => {
         props: {
           name: 'Time Out Market',
           category: 'Food hall',
+          placeId: null,
           description: 'Dozens of Lisbon kitchens under one roof.',
           address: 'Av. 24 de Julho 49',
           rating: 4.4,
@@ -38,7 +43,7 @@ describe('registry', () => {
     const html = render({
       component: {
         type: 'PlaceCard',
-        props: { name: 'MAAT', category: 'Museum', description: null, address: null, rating: null, url: null },
+        props: { name: 'MAAT', category: 'Museum', placeId: null, description: null, address: null, rating: null, url: null },
       },
     });
     expect(html).toContain('MAAT');
@@ -50,7 +55,7 @@ describe('registry', () => {
     const html = render({
       component: {
         type: 'PlaceCard',
-        props: { name: 'MAAT', category: 'Museum', description: null, address: null, rating: null, url: null },
+        props: { name: 'MAAT', category: 'Museum', placeId: null, description: null, address: null, rating: null, url: null },
       },
     });
     expect(html).toContain('Places by OpenTripMap · © OpenStreetMap contributors');

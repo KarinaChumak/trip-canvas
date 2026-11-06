@@ -10,6 +10,11 @@ const ClockTime = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Expected HH:MM,
 
 const PlaceCardData = z.strictObject({
   name: z.string().min(1),
+  placeId: z
+    .string()
+    .min(1)
+    .nullable()
+    .describe('The id from searchPlaces; the card then loads its address, description and website itself'),
   category: z.string().min(1).describe('Short kind of place, e.g. "Museum", "Café", "Viewpoint"'),
   description: z.string().nullable().describe('One or two sentences on why it is worth a visit'),
   address: z.string().nullable(),

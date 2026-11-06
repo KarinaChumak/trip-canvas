@@ -28,8 +28,9 @@ function mockModel(words: string[]) {
 
 function appWith(model: MockLanguageModelV4) {
   const cache = memoryCache();
-  const tools = createTools(createServices({ cache, env: { NOMINATIM_USER_AGENT: 'test', RAPIDAPI_KEY: 'test' } }));
-  return createApp({ model, tools, cache });
+  const services = createServices({ cache, env: { NOMINATIM_USER_AGENT: 'test', RAPIDAPI_KEY: 'test' } });
+  const tools = createTools(services);
+  return createApp({ model, tools, openTripMap: services.openTripMap, cache });
 }
 
 function postChat(app: ReturnType<typeof createApp>, body: unknown) {

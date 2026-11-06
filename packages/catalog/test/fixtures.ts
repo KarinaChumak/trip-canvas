@@ -8,6 +8,7 @@ export const validInputs = {
       props: {
         name: 'Time Out Market',
         category: 'Food hall',
+        placeId: null,
         description: 'Dozens of Lisbon kitchens under one roof.',
         address: 'Av. 24 de Julho 49, Lisbon',
         rating: 4.4,

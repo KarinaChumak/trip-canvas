@@ -31,6 +31,7 @@ This is a demo Gen AI app.
 ## Data loading
 - Never load data in a `useEffect` and then put it into state with `setState`. Load async data (IndexedDB, HTTP, anything awaited) with TanStack Query (`useQuery`, `useMutation`) instead.
 - Name hooks that wrap them after what they are: `use<Thing>Query` for `useQuery`, `use<Action>Mutation` for `useMutation` (e.g. `useSavedMessagesQuery`, `useSaveMessagesMutation`).
+- Put each such hook in `apps/web/src/hooks/`, in a file named after the hook (`hooks/usePlaceDetailsQuery.ts`), together with the fetch function and types it needs. Its test goes to `apps/web/test/hooks/usePlaceDetailsQuery.test.ts`.
 
 ## Code review
 - Skip generated code when reviewing a PR or a diff; do not comment on it or count it toward PR size:
