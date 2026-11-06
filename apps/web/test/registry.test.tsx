@@ -51,7 +51,7 @@ describe('registry', () => {
     expect(html).not.toContain('Website');
   });
 
-  it('credits OpenTripMap and OpenStreetMap in the PlaceCard footer', () => {
+  it('credits OpenTripMap and OpenStreetMap behind the PlaceCard info icon', () => {
     const html = render({
       component: {
         type: 'PlaceCard',
@@ -79,6 +79,8 @@ describe('registry', () => {
     for (const text of ['Lisbon', '2-day forecast', 'Sat 7 Nov', 'Sun 8 Nov', '19° / 13°C', '70% rain']) {
       expect(html).toContain(text);
     }
+    expect(html).toContain('aria-label="Weather data by Open-Meteo"');
+    expect(html).toContain('href="https://open-meteo.com/"');
   });
 
   it('renders a DayItinerary with its stops in order', () => {

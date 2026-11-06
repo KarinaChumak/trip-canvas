@@ -4,6 +4,7 @@ import { Badge } from '@/components/shadcn/badge';
 import { Button } from '@/components/shadcn/button';
 import { Skeleton } from '@/components/shadcn/skeleton';
 import { usePlaceDetailsQuery } from '@/hooks/usePlaceDetailsQuery';
+import { SourceCredit } from './SourceCredit';
 import {
   Card,
   CardAction,
@@ -45,8 +46,8 @@ export function PlaceCard({ place: sent }: PlaceCardProps) {
             {place.address}
           </CardDescription>
         )}
-        {place.rating !== null && (
-          <CardAction>
+        <CardAction className="flex items-center gap-1">
+          {place.rating !== null && (
             <Badge
               className="bg-amber-100 text-amber-800 dark:bg-amber-400/15 dark:text-amber-300"
               aria-label={`Rated ${place.rating} out of 5`}
@@ -54,8 +55,10 @@ export function PlaceCard({ place: sent }: PlaceCardProps) {
               <StarIcon data-icon="inline-start" className="fill-amber-400 text-amber-500" />
               {place.rating.toFixed(1)}
             </Badge>
-          </CardAction>
-        )}
+          )}
+          {/* OpenTripMap's data is under ODbL and built on OpenStreetMap, which asks for this credit. */}
+          <SourceCredit credit="Places by OpenTripMap · © OpenStreetMap contributors" href="https://opentripmap.com/" />
+        </CardAction>
       </CardHeader>
       {isLoading && (
         <CardContent className="flex flex-col gap-2">
@@ -77,14 +80,6 @@ export function PlaceCard({ place: sent }: PlaceCardProps) {
             </a>
           </Button>
         )}
-      </CardFooter>
-      {/* OpenTripMap's data is under ODbL and built on OpenStreetMap, which asks for this credit. */}
-      <CardFooter>
-        <Button asChild size="sm" variant="link" className="px-0 text-muted-foreground">
-          <a href="https://opentripmap.com/" target="_blank" rel="noreferrer">
-            Places by OpenTripMap · © OpenStreetMap contributors
-          </a>
-        </Button>
       </CardFooter>
     </Card>
   );
