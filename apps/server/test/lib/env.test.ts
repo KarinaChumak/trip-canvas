@@ -16,6 +16,7 @@ describe('parseEnv', () => {
       ANTHROPIC_API_KEY: 'test-key',
       PORT: 8787,
       CHAT_MODEL: 'claude-haiku-5-5',
+      redis: undefined,
     });
   });
 
@@ -30,5 +31,15 @@ describe('parseEnv', () => {
 
   it('leaves ACCESS_CODE optional locally', () => {
     expect(parseEnv({ ANTHROPIC_API_KEY: 'k' }).ACCESS_CODE).toBeUndefined();
+  });
+
+  it('reads Redis from the UPSTASH_* or the KV_* names', () => {
+    const redis = { url: 'https://example.upstash.io', token: 't' };
+    expect(parseEnv({ ANTHROPIC_API_KEY: 'k', UPSTASH_REDIS_REST_URL: redis.url, UPSTASH_REDIS_REST_TOKEN: 't' }).redis).toEqual(redis);
+    expect(parseEnv({ ANTHROPIC_API_KEY: 'k', KV_REST_API_URL: redis.url, KV_REST_API_TOKEN: 't' }).redis).toEqual(redis);
+  });
+
+  it('leaves Redis off unless both URL and token are set', () => {
+    expect(parseEnv({ ANTHROPIC_API_KEY: 'k', UPSTASH_REDIS_REST_URL: 'https://example.upstash.io' }).redis).toBeUndefined();
   });
 });

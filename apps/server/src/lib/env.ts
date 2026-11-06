@@ -8,6 +8,12 @@ const EnvSchema = z
     CHAT_MODEL: z.string().trim().min(1).default('claude-haiku-5-5'),
     // Shared code the web app sends as a bearer token. Unset locally: no check.
     ACCESS_CODE: z.string().trim().min(1).optional(),
+    // Cache store. Unset locally: an in-memory cache. Vercel's Upstash integration
+    // may inject the KV_* names instead, as @upstash/redis also accepts.
+    UPSTASH_REDIS_REST_URL: z.url().optional(),
+    UPSTASH_REDIS_REST_TOKEN: z.string().trim().min(1).optional(),
+    KV_REST_API_URL: z.url().optional(),
+    KV_REST_API_TOKEN: z.string().trim().min(1).optional(),
     // Set to "1" by Vercel on every deployment.
     VERCEL: z.string().optional(),
   })
@@ -16,7 +22,20 @@ const EnvSchema = z
     path: ['ACCESS_CODE'],
     message: 'is required on Vercel',
   })
-  .transform(({ VERCEL: _vercel, ...env }) => env);
+  .transform(
+    ({
+      VERCEL: _vercel,
+      UPSTASH_REDIS_REST_URL,
+      UPSTASH_REDIS_REST_TOKEN,
+      KV_REST_API_URL,
+      KV_REST_API_TOKEN,
+      ...env
+    }) => {
+      const url = UPSTASH_REDIS_REST_URL ?? KV_REST_API_URL;
+      const token = UPSTASH_REDIS_REST_TOKEN ?? KV_REST_API_TOKEN;
+      return { ...env, redis: url && token ? { url, token } : undefined };
+    },
+  );
 
 export type Env = z.infer<typeof EnvSchema>;
 

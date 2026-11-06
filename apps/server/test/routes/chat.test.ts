@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { simulateReadableStream } from 'ai';
 import { MockLanguageModelV4 } from 'ai/test';
 import { createApp } from '../../src/create-app.js';
+import { memoryCache } from '../../src/lib/cache.js';
+import { createTools } from '../../src/tools/index.js';
 
 const usage = {
   inputTokens: { total: 3, noCache: 3, cacheRead: undefined, cacheWrite: undefined },
@@ -23,6 +25,12 @@ function mockModel(words: string[]) {
   });
 }
 
+function appWith(model: MockLanguageModelV4) {
+  const cache = memoryCache();
+  const tools = createTools();
+  return createApp({ model, tools, cache });
+}
+
 function postChat(app: ReturnType<typeof createApp>, body: unknown) {
   return app.request('/api/chat', {
     method: 'POST',
@@ -33,14 +41,14 @@ function postChat(app: ReturnType<typeof createApp>, body: unknown) {
 
 describe('POST /api/chat', () => {
   it('rejects a body without messages', async () => {
-    const app = createApp({ model: mockModel([]) });
+    const app = appWith(mockModel([]));
     expect((await postChat(app, {})).status).toBe(400);
     expect((await postChat(app, { messages: [] })).status).toBe(400);
     expect((await postChat(app, 'not json')).status).toBe(400);
   });
 
   it('streams the model text as UI message parts', async () => {
-    const app = createApp({ model: mockModel(['Hello', ', ', 'Lisbon!']) });
+    const app = appWith(mockModel(['Hello', ', ', 'Lisbon!']));
     const res = await postChat(app, {
       messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'hi' }] }],
     });

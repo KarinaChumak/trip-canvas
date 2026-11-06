@@ -3,6 +3,7 @@ import { consumeStream, createUIMessageStreamResponse, type LanguageModel, type 
 import { z } from 'zod';
 import { streamAgent } from '../lib/agent.js';
 import { buildContext } from '../lib/context.js';
+import type { AgentTools } from '../tools/index.js';
 
 // Loose on purpose: the AI SDK owns the part shapes; we only check the envelope.
 const ChatBodySchema = z.object({
@@ -17,8 +18,10 @@ const ChatBodySchema = z.object({
     .min(1),
 });
 
+type ChatRouteDeps = { model: LanguageModel; tools: AgentTools };
+
 /** HTTP only: validate the request, hand it to the agent, return the stream. */
-export function createChatRoute({ model }: { model: LanguageModel }) {
+export function createChatRoute({ model, tools }: ChatRouteDeps) {
   const route = new Hono();
 
   route.post('/chat', async (c) => {
@@ -28,7 +31,7 @@ export function createChatRoute({ model }: { model: LanguageModel }) {
     }
 
     const context = await buildContext(parsed.data.messages as UIMessage[]);
-    const stream = streamAgent({ model, context, abortSignal: c.req.raw.signal });
+    const stream = streamAgent({ model, tools, context, abortSignal: c.req.raw.signal });
 
     // consumeSseStream keeps the stream draining after a disconnect so abort cleanup runs.
     return createUIMessageStreamResponse({ stream, consumeSseStream: consumeStream });

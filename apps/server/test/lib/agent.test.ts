@@ -3,7 +3,9 @@ import { simulateReadableStream, type StepResult } from 'ai';
 import { MockLanguageModelV4 } from 'ai/test';
 import { EMIT_COMPONENT_TOOL } from 'catalog/schema';
 import { activeToolsFor, MAX_INVALID_COMPONENTS, streamAgent } from '../../src/lib/agent.js';
-import type { AgentTools } from '../../src/tools/index.js';
+import { createTools, type AgentTools } from '../../src/tools/index.js';
+
+const tools = createTools();
 
 const usage = {
   inputTokens: { total: 3, noCache: 3, cacheRead: undefined, cacheWrite: undefined },
@@ -17,13 +19,13 @@ function emitStep(output: object) {
 
 describe('activeToolsFor', () => {
   it('keeps all tools while emit_component has failed fewer times than allowed', () => {
-    expect(activeToolsFor([])).toBeUndefined();
-    expect(activeToolsFor([emitStep({ error: 'bad' }), emitStep({ ok: true })])).toBeUndefined();
+    expect(activeToolsFor([], tools)).toBeUndefined();
+    expect(activeToolsFor([emitStep({ error: 'bad' }), emitStep({ ok: true })], tools)).toBeUndefined();
   });
 
   it(`drops emit_component after ${MAX_INVALID_COMPONENTS} invalid components`, () => {
     const steps = Array.from({ length: MAX_INVALID_COMPONENTS }, () => emitStep({ error: 'bad' }));
-    expect(activeToolsFor(steps)).toEqual(['getMockDay']);
+    expect(activeToolsFor(steps, tools)).toEqual(['getMockDay']);
   });
 });
 
@@ -56,7 +58,7 @@ describe('streamAgent', () => {
       },
     });
 
-    const stream = streamAgent({ model, context: { system: 'test', messages: [{ role: 'user', content: 'Plan a day in Lisbon' }] } });
+    const stream = streamAgent({ model, tools, context: { system: 'test', messages: [{ role: 'user', content: 'Plan a day in Lisbon' }] } });
     const chunks: { type: string; [key: string]: unknown }[] = [];
     for await (const chunk of stream) chunks.push(chunk);
 
