@@ -1,6 +1,7 @@
 {
   "name": "trip-canvas",
   "private": true,
+  "packageManager": "pnpm@12.16.1",
   "type": "module",
   "scripts": {
     "dev": "pnpm --parallel --filter web --filter server dev",
