@@ -1,4 +1,4 @@
-import { jsonSchema, tool } from 'ai';
+import { jsonSchema, tool, type JSONSchema7 } from 'ai';
 import {
   emitComponentJsonSchema,
   validateEmitComponent,
@@ -16,7 +16,9 @@ export const emitComponent = tool({
     'Show the user one UI component from the catalog. Pass the component type and all of its props.',
   // No `validate` on purpose: invalid input must reach `execute`, so the model gets
   // a readable error it can fix instead of a failed tool call.
-  inputSchema: jsonSchema<EmitComponentInput>(emitComponentJsonSchema),
+  // Zod types `exclusiveMaximum` as number | boolean (draft 4 style); the draft-7 output
+  // never uses the boolean form, so it is a valid JSONSchema7.
+  inputSchema: jsonSchema<EmitComponentInput>(emitComponentJsonSchema as JSONSchema7),
   execute: async (input): Promise<EmitComponentOutput> => {
     const result = validateEmitComponent(input);
     if (result.ok) return { ok: true };
