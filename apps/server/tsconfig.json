@@ -6,5 +6,5 @@
     // explicit typeRoots, @types/node is looked up from /tmp and the build fails (TS2688).
     "typeRoots": ["./node_modules/@types"]
   },
-  "include": ["src", "test"]
+  "include": ["src", "test", "vitest.config.ts"]
 }

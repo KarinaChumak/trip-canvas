@@ -1,12 +1,9 @@
-import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
 
+// One Vitest project per package, each with its own vitest.config.ts (environment,
+// aliases). `pnpm test` runs them all; `pnpm test --project web` runs one.
 export default defineConfig({
-  // The web app's `@/` import alias, so its tests resolve the same paths as Vite.
-  resolve: { alias: { '@': fileURLToPath(new URL('./apps/web/src', import.meta.url)) } },
   test: {
-    // Unit tests live in each package's test/ folder, mirroring its src/ layout.
-    include: ['apps/*/test/**/*.test.{ts,tsx}', 'packages/*/test/**/*.test.ts'],
-    exclude: ['**/node_modules/**'],
+    projects: ['apps/*/vitest.config.ts', 'packages/*/vitest.config.ts'],
   },
 });

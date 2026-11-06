@@ -39,4 +39,5 @@ API keys live only in `apps/server/.env`, which is git-ignored. See
 | --- | --- |
 | `pnpm dev` | web and server in parallel |
 | `pnpm typecheck` | type-check every package |
-| `pnpm test` | Vitest unit tests |
+| `pnpm test` | Vitest unit tests, every package |
+| `pnpm test --project web` | one package's tests (`server`, `web`, `catalog`) |
