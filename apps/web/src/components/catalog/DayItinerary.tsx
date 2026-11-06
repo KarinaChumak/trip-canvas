@@ -1,5 +1,6 @@
 import { Fragment } from 'react';
 import {
+  CalendarDaysIcon,
   CoffeeIcon,
   LandmarkIcon,
   LibraryBigIcon,
@@ -24,18 +25,25 @@ import {
   ItemTitle,
 } from '@/components/shadcn/item';
 import { formatDay, formatDuration } from '@/lib/format';
+import { cn } from '@/lib/utils';
 
 type StopKind = DayItineraryData['stops'][number]['kind'];
 
-const KIND_ICONS: Record<StopKind, LucideIcon> = {
-  sight: LandmarkIcon,
-  museum: LibraryBigIcon,
-  food: UtensilsIcon,
-  coffee: CoffeeIcon,
-  shopping: ShoppingBagIcon,
-  nightlife: MusicIcon,
-  transport: TramFrontIcon,
-  other: MapPinIcon,
+type KindStyle = {
+  icon: LucideIcon;
+  /** Full class strings, so Tailwind can find them. */
+  tint: string;
+};
+
+const KIND_STYLES: Record<StopKind, KindStyle> = {
+  sight: { icon: LandmarkIcon, tint: 'bg-secondary text-secondary-foreground' },
+  museum: { icon: LibraryBigIcon, tint: 'bg-stone-200 text-stone-700 dark:bg-stone-800 dark:text-stone-300' },
+  food: { icon: UtensilsIcon, tint: 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300' },
+  coffee: { icon: CoffeeIcon, tint: 'bg-amber-100 text-amber-700 dark:bg-amber-400/15 dark:text-amber-300' },
+  shopping: { icon: ShoppingBagIcon, tint: 'bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300' },
+  nightlife: { icon: MusicIcon, tint: 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300' },
+  transport: { icon: TramFrontIcon, tint: 'bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300' },
+  other: { icon: MapPinIcon, tint: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-400/15 dark:text-yellow-300' },
 };
 
 type DayItineraryProps = {
@@ -49,18 +57,21 @@ export function DayItinerary({ day }: DayItineraryProps) {
     <Card className="w-full max-w-xl">
       <CardHeader>
         <CardTitle>{day.title}</CardTitle>
-        <CardDescription>{subtitle}</CardDescription>
+        <CardDescription className="flex items-center gap-1.5">
+          <CalendarDaysIcon className="size-3.5 text-primary" aria-hidden />
+          {subtitle}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         {/* No group gap: the separators already space the stops. */}
         <ItemGroup className="gap-0">
           {day.stops.map((stop, i) => {
-            const Icon = KIND_ICONS[stop.kind];
+            const { icon: Icon, tint } = KIND_STYLES[stop.kind];
             return (
               <Fragment key={stop.id}>
                 {i > 0 && <ItemSeparator />}
                 <Item size="sm">
-                  <ItemMedia variant="icon">
+                  <ItemMedia variant="icon" className={cn('size-8 rounded-md', tint)}>
                     <Icon aria-label={stop.kind} />
                   </ItemMedia>
                   <ItemContent>
@@ -71,7 +82,7 @@ export function DayItinerary({ day }: DayItineraryProps) {
                     {stop.durationMinutes !== null && (
                       <ItemDescription>{formatDuration(stop.durationMinutes)}</ItemDescription>
                     )}
-                    <Badge variant="outline">{stop.time}</Badge>
+                    <Badge variant="secondary">{stop.time}</Badge>
                   </ItemActions>
                 </Item>
               </Fragment>
