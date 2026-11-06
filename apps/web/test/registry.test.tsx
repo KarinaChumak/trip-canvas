@@ -43,7 +43,18 @@ describe('registry', () => {
     });
     expect(html).toContain('MAAT');
     expect(html).not.toContain('Rated');
-    expect(html).not.toContain('href=');
+    expect(html).not.toContain('Website');
+  });
+
+  it('credits OpenTripMap and OpenStreetMap in the PlaceCard footer', () => {
+    const html = render({
+      component: {
+        type: 'PlaceCard',
+        props: { name: 'MAAT', category: 'Museum', description: null, address: null, rating: null, url: null },
+      },
+    });
+    expect(html).toContain('Places by OpenTripMap · © OpenStreetMap contributors');
+    expect(html).toContain('href="https://opentripmap.com/"');
   });
 
   it('renders a WeatherStrip with one entry per day', () => {

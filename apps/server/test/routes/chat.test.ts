@@ -28,7 +28,7 @@ function mockModel(words: string[]) {
 
 function appWith(model: MockLanguageModelV4) {
   const cache = memoryCache();
-  const tools = createTools(createServices({ cache, env: { NOMINATIM_USER_AGENT: 'test' } }));
+  const tools = createTools(createServices({ cache, env: { NOMINATIM_USER_AGENT: 'test', RAPIDAPI_KEY: 'test' } }));
   return createApp({ model, tools, cache });
 }
 

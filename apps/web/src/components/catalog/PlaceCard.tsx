@@ -43,6 +43,14 @@ export function PlaceCard({ place }: PlaceCardProps) {
           </Button>
         )}
       </CardFooter>
+      {/* OpenTripMap's data is under ODbL and built on OpenStreetMap, which asks for this credit. */}
+      <CardFooter>
+        <Button asChild size="sm" variant="link" className="px-0 text-muted-foreground">
+          <a href="https://opentripmap.com/" target="_blank" rel="noreferrer">
+            Places by OpenTripMap · © OpenStreetMap contributors
+          </a>
+        </Button>
+      </CardFooter>
     </Card>
   );
 }

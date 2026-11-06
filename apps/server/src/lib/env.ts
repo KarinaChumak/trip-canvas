@@ -10,6 +10,9 @@ const EnvSchema = z
     ACCESS_CODE: z.string().trim().min(1).optional(),
     // Nominatim asks for a User-Agent that identifies the app.
     NOMINATIM_USER_AGENT: z.string().trim().min(1).default('trip-canvas-demo'),
+    // RapidAPI account key, for OpenTripMap's places API (free Basic plan). Required
+    // everywhere so searchPlaces always works.
+    RAPIDAPI_KEY: z.string({ error: 'is required' }).trim().min(1, 'is required'),
     // Cache store. Unset locally: an in-memory cache. Vercel's Upstash integration
     // may inject the KV_* names instead, as @upstash/redis also accepts.
     UPSTASH_REDIS_REST_URL: z.url().optional(),
