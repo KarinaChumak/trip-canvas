@@ -38,5 +38,6 @@ API keys live only in `apps/server/.env`, which is git-ignored. See
 | Command | What it does |
 | --- | --- |
 | `pnpm dev` | web and server in parallel |
+| `pnpm lint` | ESLint, including the CLAUDE.md code-style rules |
 | `pnpm typecheck` | type-check every package |
 | `pnpm test` | Vitest unit tests |

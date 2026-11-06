@@ -33,6 +33,10 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      # Includes the CLAUDE.md code-style rules (props naming, no prop spreading, no useEffect loading).
+      - name: Lint
+        run: pnpm lint
+
       - name: Typecheck
         run: pnpm typecheck
 
