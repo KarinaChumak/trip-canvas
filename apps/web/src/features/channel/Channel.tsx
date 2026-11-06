@@ -7,9 +7,10 @@ import {
   ConversationScrollButton,
 } from '@/components/ai-elements/conversation';
 import { Spinner } from '@/components/shadcn/spinner';
+import { useSaveMessagesMutation } from '@/hooks/useSaveMessagesMutation';
+import { useSavedMessagesQuery } from '@/hooks/useSavedMessagesQuery';
 import { accessHeaders, accessQueryKey } from '@/lib/access-code';
 import type { ChatMessage } from '@/lib/chat';
-import { useSaveMessagesMutation, useSavedMessagesQuery } from '@/lib/chat-storage';
 import { ChannelHeader } from './ChannelHeader';
 import { ChatError } from './ChatError';
 import { Composer } from './Composer';

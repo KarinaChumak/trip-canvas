@@ -9,7 +9,7 @@ import {
 } from '@/components/shadcn/card';
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/shadcn/field';
 import { Input } from '@/components/shadcn/input';
-import { useUnlockMutation } from '@/lib/access-code';
+import { useUnlockMutation } from '@/hooks/useUnlockMutation';
 
 /** Asks for the shared demo code; a wrong one shows an error under the field. */
 export function AccessCodeForm() {

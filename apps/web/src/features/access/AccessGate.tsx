@@ -3,7 +3,7 @@ import { AlertCircleIcon } from 'lucide-react';
 import { Alert, AlertAction, AlertTitle } from '@/components/shadcn/alert';
 import { Button } from '@/components/shadcn/button';
 import { Spinner } from '@/components/shadcn/spinner';
-import { useAccessQuery } from '@/lib/access-code';
+import { useAccessQuery } from '@/hooks/useAccessQuery';
 import { AccessCodeForm } from './AccessCodeForm';
 
 type AccessGateProps = {
