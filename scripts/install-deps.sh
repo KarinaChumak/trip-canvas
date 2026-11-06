@@ -16,8 +16,8 @@ pnpm --filter web add -D vite @vitejs/plugin-react typescript @types/react @type
 pnpm --filter web add ai @ai-sdk/react @json-render/core @json-render/react zustand idb-keyval zod react-grid-layout maplibre-gl
 
 # server
-pnpm --filter server add hono @hono/node-server ai @ai-sdk/anthropic zod better-sqlite3 lru-cache
-pnpm --filter server add -D tsx typescript @types/node @types/better-sqlite3
+pnpm --filter server add hono @hono/node-server ai @ai-sdk/anthropic zod lru-cache @upstash/redis
+pnpm --filter server add -D tsx typescript @types/node esbuild
 
 # catalog
 pnpm --filter catalog add @json-render/core zod

@@ -2,10 +2,6 @@ packages:
   - apps/*
   - packages/*
 
-# pnpm 10 blocks install scripts by default; these need theirs.
+# pnpm blocks install scripts by default; esbuild needs its own to fetch its binary.
 allowBuilds:
   esbuild: true
-
-onlyBuiltDependencies:
-  - better-sqlite3
-  - esbuild
