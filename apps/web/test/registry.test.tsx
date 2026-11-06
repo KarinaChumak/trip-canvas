@@ -101,4 +101,19 @@ describe('registry', () => {
     }
     expect(html.indexOf('São Jorge Castle')).toBeLessThan(html.indexOf('Lunch at Prado'));
   });
+
+  it('renders a MapView title and map credit, with the map itself loading lazily', () => {
+    const html = render({
+      component: {
+        type: 'MapView',
+        props: {
+          title: 'Sights in Alfama',
+          places: [{ name: 'Sé de Lisboa', category: 'Cathedral', latitude: 38.71, longitude: -9.1355 }],
+        },
+      },
+    });
+    for (const text of ['Sights in Alfama', 'OpenFreeMap © OpenMapTiles · Data © OpenStreetMap contributors']) {
+      expect(html).toContain(text);
+    }
+  });
 });

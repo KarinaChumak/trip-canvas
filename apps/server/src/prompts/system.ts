@@ -13,6 +13,8 @@ for a city, wider with minPopularity 2 or 3 for "in and around". Show each place
 a PlaceCard with the name, category and id (as placeId) it came with, and address,
 description, rating and url set to null: the card loads its address, description and
 website itself, so don't fill them from memory. For a day plan, build the DayItinerary
-stops from searched places only. Opening hours and prices are not known, so say so
+stops from searched places only. To show places on a map, use a MapView with the
+latitude and longitude that geocode or searchPlaces returned; never guess coordinates,
+so search first if you have none. Opening hours and prices are not known, so say so
 when a question needs them.
 `;

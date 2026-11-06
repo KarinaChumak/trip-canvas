@@ -62,6 +62,22 @@ const DayItineraryData = z.strictObject({
     .max(12),
 });
 
+const MapViewData = z.strictObject({
+  title: z.string().min(1).describe('e.g. "Sights in Alfama"'),
+  places: z
+    .array(
+      z.strictObject({
+        name: z.string().min(1),
+        category: z.string().min(1),
+        latitude: z.number().min(-90).max(90),
+        longitude: z.number().min(-180).max(180),
+      }),
+    )
+    .min(1)
+    .max(20)
+    .describe('Coordinates copied from geocode or searchPlaces results, never guessed'),
+});
+
 /** Catalog components: Zod props plus the one-line description the model sees. */
 export const components = {
   PlaceCard: {
@@ -76,6 +92,10 @@ export const components = {
     props: DayItineraryData,
     description: 'A timed plan for one day in one city, as an ordered list of stops.',
   },
+  MapView: {
+    props: MapViewData,
+    description: 'A map with a pin per place, for places whose coordinates came from a tool.',
+  },
 } as const;
 
 export type ComponentName = keyof typeof components;
@@ -83,6 +103,7 @@ export type ComponentName = keyof typeof components;
 export type PlaceCardData = z.infer<typeof PlaceCardData>;
 export type WeatherStripData = z.infer<typeof WeatherStripData>;
 export type DayItineraryData = z.infer<typeof DayItineraryData>;
+export type MapViewData = z.infer<typeof MapViewData>;
 
 /** The json-render catalog shared by the server (validation) and the web app (registry). */
 export const catalog = defineCatalog(schema, { components, actions: {} });
