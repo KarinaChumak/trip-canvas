@@ -15,17 +15,17 @@ type BlockErrorBoundaryState = { failed: boolean };
  * fallback and the rest of the chat stays. React only offers this as a class component.
  */
 export class BlockErrorBoundary extends Component<BlockErrorBoundaryProps, BlockErrorBoundaryState> {
-  state: BlockErrorBoundaryState = { failed: false };
+  override state: BlockErrorBoundaryState = { failed: false };
 
   static getDerivedStateFromError(): BlockErrorBoundaryState {
     return { failed: true };
   }
 
-  componentDidCatch(error: Error, info: ErrorInfo) {
+  override componentDidCatch(error: Error, info: ErrorInfo) {
     console.error(`[block] ${this.props.type} failed to render`, error, info.componentStack);
   }
 
-  render() {
+  override render() {
     if (this.state.failed) return <FallbackBlock type={this.props.type} reason="failed" />;
     return this.props.children;
   }
