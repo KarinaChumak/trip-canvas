@@ -51,7 +51,7 @@ describe('registry', () => {
     expect(html).not.toContain('Website');
   });
 
-  it('credits OpenTripMap and OpenStreetMap in the PlaceCard footer', () => {
+  it('credits OpenTripMap and OpenStreetMap behind the PlaceCard info icon', () => {
     const html = render({
       component: {
         type: 'PlaceCard',
@@ -79,6 +79,8 @@ describe('registry', () => {
     for (const text of ['Lisbon', '2-day forecast', 'Sat 7 Nov', 'Sun 8 Nov', '19° / 13°C', '70% rain']) {
       expect(html).toContain(text);
     }
+    expect(html).toContain('aria-label="Weather data by Open-Meteo"');
+    expect(html).toContain('href="https://open-meteo.com/"');
   });
 
   it('renders a DayItinerary with its stops in order', () => {
@@ -100,5 +102,20 @@ describe('registry', () => {
       expect(html).toContain(text);
     }
     expect(html.indexOf('São Jorge Castle')).toBeLessThan(html.indexOf('Lunch at Prado'));
+  });
+
+  it('renders a MapView title and map credit, with the map itself loading lazily', () => {
+    const html = render({
+      component: {
+        type: 'MapView',
+        props: {
+          title: 'Sights in Alfama',
+          places: [{ name: 'Sé de Lisboa', category: 'Cathedral', latitude: 38.71, longitude: -9.1355 }],
+        },
+      },
+    });
+    for (const text of ['Sights in Alfama', 'OpenFreeMap © OpenMapTiles · Data © OpenStreetMap contributors']) {
+      expect(html).toContain(text);
+    }
   });
 });

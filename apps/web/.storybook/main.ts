@@ -5,6 +5,8 @@ import type { StorybookConfig } from '@storybook/react-vite';
 const config: StorybookConfig = {
   stories: ['../stories/**/*.stories.tsx'],
   addons: ['@storybook/addon-themes'],
+  // MSW's service worker (`msw init .storybook/public`); served by Storybook only, never shipped with the app.
+  staticDirs: ['./public'],
   framework: '@storybook/react-vite',
 };
 
