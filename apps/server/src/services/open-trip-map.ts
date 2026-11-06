@@ -197,7 +197,7 @@ export function createOpenTripMapClient({ cache, rapidApiKey }: OpenTripMapClien
       url.search = params.toString();
 
       const seen = new Set<string>();
-      return RadiusResponse.parse(await api.getJson(url, signal))
+      return (await api.getJson(url, RadiusResponse, signal))
         .filter((place) => place.name.trim() !== '')
         .sort((a, b) => popularity(b.rate) - popularity(a.rate) || a.dist - b.dist)
         // OpenStreetMap often maps one viewpoint twice (a point and an area); keep the first.
@@ -220,7 +220,7 @@ export function createOpenTripMapClient({ cache, rapidApiKey }: OpenTripMapClien
 
     async getPlaceDetails(id, signal) {
       const url = new URL(`https://${RAPIDAPI_HOST}/en/places/xid/${encodeURIComponent(id)}`);
-      const details = DetailsResponse.parse(await api.getJson(url, signal));
+      const details = await api.getJson(url, DetailsResponse, signal);
       return {
         address: formatAddress(details.address),
         // A restaurant's article is usually the building's ("Farol de Santa Luzia" got the

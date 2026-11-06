@@ -47,7 +47,7 @@ export function createNominatimClient({ cache, userAgent }: NominatimClientDeps)
       const q = query.trim().replace(/\s+/g, ' ').toLowerCase();
       url.search = new URLSearchParams({ q, format: 'jsonv2', limit: '1', 'accept-language': 'en' }).toString();
 
-      const place = NominatimResponse.parse(await api.getJson(url, signal))[0];
+      const place = (await api.getJson(url, NominatimResponse, signal))[0];
       if (!place) return null;
       const [south, north, west, east] = place.boundingbox;
       return {

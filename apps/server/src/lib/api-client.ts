@@ -1,4 +1,5 @@
-import { cached, type Cache } from './cache.js';
+import { z } from 'zod';
+import type { Cache } from './cache.js';
 
 /** Long enough for a slow answer; a healthy Nominatim or Open-Meteo replies in well under a second. */
 const DEFAULT_TIMEOUT_MS = 10_000;
@@ -19,10 +20,13 @@ export type ApiClientOptions = {
 
 export type ApiClient = {
   /**
-   * GETs `url` and returns its JSON, from the cache when it can. The raw JSON is
-   * cached, so callers parse it on every call, from the API or from the cache alike.
+   * GETs `url` and returns its JSON parsed with `schema`, from the cache when it can.
+   * Only a response that parses is cached, so an error never is: an HTTP error, a
+   * timeout or a 200 of the wrong shape (a quota message) throws and the next call
+   * asks the API again. The raw JSON is cached and parsed on every hit too, so an
+   * entry from before a schema change counts as a miss.
    */
-  getJson(url: URL, signal?: AbortSignal): Promise<unknown>;
+  getJson<T>(url: URL, schema: z.ZodType<T>, signal?: AbortSignal): Promise<T>;
 };
 
 /**
@@ -76,8 +80,54 @@ export function createApiClient({
     return res.json();
   }
 
+  // Calls on their way, by cache key: parallel tool calls for the same place (geocode
+  // and getWeather for "Lisbon") share one request instead of both missing the cache.
+  // A shared call follows the first caller's signal, so its Stop also stops the others.
+  const inFlight = new Map<string, Promise<unknown>>();
+
+  async function readCache<T>(key: string, schema: z.ZodType<T>): Promise<T | undefined> {
+    try {
+      const hit = await cache.get(key);
+      if (hit === undefined) return undefined;
+      const parsed = schema.safeParse(hit);
+      if (parsed.success) {
+        console.log('[cache] hit', key);
+        return parsed.data;
+      }
+      console.warn('[cache] stale shape, refetching', key);
+    } catch (err) {
+      // The cache only saves calls: if it is down, the API still answers.
+      console.warn('[cache] read failed', err);
+    }
+    return undefined;
+  }
+
+  async function load<T>(key: string, url: URL, schema: z.ZodType<T>, signal?: AbortSignal): Promise<T> {
+    console.log('[cache] miss', key);
+    let request = inFlight.get(key);
+    if (!request) {
+      request = enqueue(() => fetchJson(url, signal)).finally(() => inFlight.delete(key));
+      inFlight.set(key, request);
+    }
+    const raw = await request;
+
+    const parsed = schema.safeParse(raw);
+    if (!parsed.success) {
+      console.error(`[http] ${service} answered in an unexpected shape`, z.prettifyError(parsed.error));
+      throw new Error(`${service} answered in an unexpected shape`);
+    }
+    try {
+      await cache.set(key, raw, ttlSeconds);
+    } catch (err) {
+      console.warn('[cache] write failed', err);
+    }
+    return parsed.data;
+  }
+
   return {
-    getJson: (url, signal) =>
-      cached(cache, cacheKey(service, url, secretParams), ttlSeconds, () => enqueue(() => fetchJson(url, signal))),
+    async getJson(url, schema, signal) {
+      const key = cacheKey(service, url, secretParams);
+      return (await readCache(key, schema)) ?? load(key, url, schema, signal);
+    },
   };
 }
