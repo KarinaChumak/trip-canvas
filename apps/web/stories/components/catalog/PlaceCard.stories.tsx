@@ -14,6 +14,7 @@ export const Full: Story = {
     place: {
       name: 'Time Out Market',
       category: 'Food hall',
+      placeId: null,
       description: 'Dozens of Lisbon kitchens under one roof.',
       address: 'Av. 24 de Julho 49, Lisbon',
       rating: 4.4,
@@ -28,6 +29,7 @@ export const Minimal: Story = {
     place: {
       name: 'Miradouro da Graça',
       category: 'Viewpoint',
+      placeId: null,
       description: null,
       address: null,
       rating: null,

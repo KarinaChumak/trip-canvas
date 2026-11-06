@@ -6,7 +6,7 @@ import { Block } from '@/blocks/Block';
 const place: EmitComponentInput = {
   component: {
     type: 'PlaceCard',
-    props: { name: 'MAAT', category: 'Museum', description: null, address: null, rating: 4.5, url: null },
+    props: { name: 'MAAT', category: 'Museum', placeId: null, description: null, address: null, rating: 4.5, url: null },
   },
 };
 

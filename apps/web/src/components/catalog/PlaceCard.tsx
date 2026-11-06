@@ -2,6 +2,8 @@ import { ExternalLinkIcon, MapPinIcon, StarIcon, TagIcon } from 'lucide-react';
 import type { PlaceCardData } from 'catalog';
 import { Badge } from '@/components/shadcn/badge';
 import { Button } from '@/components/shadcn/button';
+import { Skeleton } from '@/components/shadcn/skeleton';
+import { usePlaceDetailsQuery } from '@/lib/place-details';
 import {
   Card,
   CardAction,
@@ -16,11 +18,43 @@ type PlaceCardProps = {
   place: PlaceCardData;
 };
 
+/**
+ * Renders at once from what the agent sent. A card with a `placeId` then loads its
+ * address, description and website, so the agent's turn never waits for them.
+ */
 export function PlaceCard({ place }: PlaceCardProps) {
+  if (place.placeId === null) return <PlaceCardView place={place} loadingDetails={false} />;
+  return <PlaceCardWithDetails place={place} placeId={place.placeId} />;
+}
+
+type PlaceCardWithDetailsProps = {
+  place: PlaceCardData;
+  placeId: string;
+};
+
+function PlaceCardWithDetails({ place, placeId }: PlaceCardWithDetailsProps) {
+  // On an error the card just stays without details.
+  const { data, isPending } = usePlaceDetailsQuery(placeId);
+  const withDetails: PlaceCardData = {
+    ...place,
+    address: place.address ?? data?.address ?? null,
+    description: place.description ?? data?.description ?? null,
+    url: place.url ?? data?.url ?? null,
+  };
+  return <PlaceCardView place={withDetails} loadingDetails={isPending} />;
+}
+
+type PlaceCardViewProps = {
+  place: PlaceCardData;
+  loadingDetails: boolean;
+};
+
+function PlaceCardView({ place, loadingDetails }: PlaceCardViewProps) {
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full max-w-md" aria-busy={loadingDetails}>
       <CardHeader>
         <CardTitle>{place.name}</CardTitle>
+        {loadingDetails && <Skeleton className="h-4 w-48" />}
         {place.address && (
           <CardDescription className="flex items-center gap-1.5">
             <MapPinIcon className="size-3.5 shrink-0 text-primary" aria-hidden />
@@ -39,6 +73,12 @@ export function PlaceCard({ place }: PlaceCardProps) {
           </CardAction>
         )}
       </CardHeader>
+      {loadingDetails && (
+        <CardContent className="flex flex-col gap-2">
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-2/3" />
+        </CardContent>
+      )}
       {place.description && <CardContent>{place.description}</CardContent>}
       <CardFooter className="justify-between gap-2">
         <Badge variant="secondary">

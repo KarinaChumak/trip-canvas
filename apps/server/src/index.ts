@@ -19,6 +19,7 @@ const services = createServices({ cache, env });
 const app: Hono = createApp({
   model: anthropic(env.CHAT_MODEL),
   tools: createTools(services),
+  openTripMap: services.openTripMap,
   cache,
   accessCode: env.ACCESS_CODE,
 });

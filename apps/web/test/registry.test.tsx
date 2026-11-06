@@ -21,6 +21,7 @@ describe('registry', () => {
         props: {
           name: 'Time Out Market',
           category: 'Food hall',
+          placeId: null,
           description: 'Dozens of Lisbon kitchens under one roof.',
           address: 'Av. 24 de Julho 49',
           rating: 4.4,
@@ -38,7 +39,7 @@ describe('registry', () => {
     const html = render({
       component: {
         type: 'PlaceCard',
-        props: { name: 'MAAT', category: 'Museum', description: null, address: null, rating: null, url: null },
+        props: { name: 'MAAT', category: 'Museum', placeId: null, description: null, address: null, rating: null, url: null },
       },
     });
     expect(html).toContain('MAAT');
@@ -50,7 +51,7 @@ describe('registry', () => {
     const html = render({
       component: {
         type: 'PlaceCard',
-        props: { name: 'MAAT', category: 'Museum', description: null, address: null, rating: null, url: null },
+        props: { name: 'MAAT', category: 'Museum', placeId: null, description: null, address: null, rating: null, url: null },
       },
     });
     expect(html).toContain('Places by OpenTripMap · © OpenStreetMap contributors');

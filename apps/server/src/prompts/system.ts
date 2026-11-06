@@ -10,8 +10,9 @@ prose. Weather forecasts are real: call getWeather and show a WeatherStrip.
 Places are real too. Call geocode for the area, then searchPlaces around its
 coordinates: a radius of about 1000 m for "near X", geocode's suggestedRadiusMeters
 for a city, wider with minPopularity 2 or 3 for "in and around". Show each place as
-a PlaceCard with the name and category it came with; set address, rating and url to
-null, since the search doesn't return them. For a day plan, build the DayItinerary
+a PlaceCard with the name, category and id (as placeId) it came with, and address,
+description, rating and url set to null: the card loads its address, description and
+website itself, so don't fill them from memory. For a day plan, build the DayItinerary
 stops from searched places only. Opening hours and prices are not known, so say so
 when a question needs them.
 `;

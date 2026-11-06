@@ -87,9 +87,18 @@ export type NearbyPlace = {
   distanceMeters: number;
 };
 
+/** What the details call adds to a place; each field is null when OpenTripMap doesn't have it. */
+export type PlaceDetails = {
+  address: string | null;
+  description: string | null;
+  url: string | null;
+};
+
 export type OpenTripMapClient = {
-  /** Named places around a point, best known first, then nearest. */
+  /** Named places around a point, best known first, then nearest, one per name. */
   searchPlaces(search: PlaceSearch, signal?: AbortSignal): Promise<NearbyPlace[]>;
+  /** Address, a short English description and the website of one place. */
+  getPlaceDetails(id: string, signal?: AbortSignal): Promise<PlaceDetails>;
 };
 
 type OpenTripMapClientDeps = {
@@ -106,14 +115,57 @@ const RadiusResponse = z.array(
     name: z.string(),
     kinds: z.string(),
     dist: z.number(),
-    // A number in JSON results; tolerate the "3h" (heritage) strings of other formats.
+    // 0–3, or 5–7 for cultural heritage (OpenTripMap's "1h"–"3h").
     rate: z.union([z.number(), z.string()]).optional(),
     point: z.object({ lon: z.number(), lat: z.number() }),
   }),
 );
 
-function popularity(rate: number | string | undefined): number {
-  return Number.parseInt(String(rate ?? 0), 10) || 0;
+const DetailsResponse = z.object({
+  kinds: z.string().optional(),
+  address: z.record(z.string(), z.string()).optional(),
+  url: z.string().optional(),
+  wikipedia_extracts: z.object({ title: z.string().optional(), text: z.string().optional() }).optional(),
+});
+
+/** Sort score: heritage ranks just above the same level without it, not above every level. */
+export function popularity(rate: number | string | undefined): number {
+  const level = Number.parseInt(String(rate ?? 0), 10) || 0;
+  return level > 4 ? level - 4 + 0.5 : level;
+}
+
+/** "Largo de Santa Luzia 5, Alfama": street and number, then the district. */
+export function formatAddress(address: Record<string, string> | undefined): string | null {
+  if (!address) return null;
+  const street = address.road ?? address.pedestrian ?? address.footway ?? address.square;
+  const parts = [
+    street && [street, address.house_number].filter(Boolean).join(' '),
+    address.suburb ?? address.neighbourhood ?? address.city,
+  ].filter(Boolean);
+  return parts.length > 0 ? parts.join(', ') : null;
+}
+
+/**
+ * The first two sentences of the English Wikipedia extract. OpenTripMap sometimes
+ * returns another language's article even on /en/; its title then starts with "zh:" etc.
+ */
+export function shortDescription(extract: { title?: string; text?: string } | undefined): string | null {
+  if (!extract?.text || !extract.title?.startsWith('en:')) return null;
+  // Drop pronunciations and translations: "[ˈpɾasɐ…]", "(Portuguese: …)".
+  const text = extract.text.replace(/\s*\[[^\]]*\]|\s*\([^)]*\)/g, '').trim();
+  // Also split "Monument.Catholicism", where the extract glued a category onto a sentence.
+  const sentences = text.split(/(?<=[.!?])\s*(?=[A-Z])/);
+  return sentences.slice(0, 2).join(' ').trim() || null;
+}
+
+/** OpenStreetMap websites sometimes lack the scheme ("www.example.pt"). */
+export function websiteUrl(value: string | undefined): string | null {
+  if (!value) return null;
+  try {
+    return new URL(/^https?:\/\//.test(value) ? value : `https://${value}`).toString();
+  } catch {
+    return null;
+  }
 }
 
 export function createOpenTripMapClient({ cache, rapidApiKey }: OpenTripMapClientDeps): OpenTripMapClient {
@@ -144,9 +196,17 @@ export function createOpenTripMapClient({ cache, rapidApiKey }: OpenTripMapClien
       if (minPopularity > 0) params.set('rate', String(minPopularity));
       url.search = params.toString();
 
+      const seen = new Set<string>();
       return RadiusResponse.parse(await api.getJson(url, signal))
         .filter((place) => place.name.trim() !== '')
         .sort((a, b) => popularity(b.rate) - popularity(a.rate) || a.dist - b.dist)
+        // OpenStreetMap often maps one viewpoint twice (a point and an area); keep the first.
+        .filter((place) => {
+          const key = place.name.trim().toLowerCase();
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        })
         .slice(0, limit)
         .map((place) => ({
           id: place.xid,
@@ -156,6 +216,18 @@ export function createOpenTripMapClient({ cache, rapidApiKey }: OpenTripMapClien
           longitude: place.point.lon,
           distanceMeters: Math.round(place.dist),
         }));
+    },
+
+    async getPlaceDetails(id, signal) {
+      const url = new URL(`https://${RAPIDAPI_HOST}/en/places/xid/${encodeURIComponent(id)}`);
+      const details = DetailsResponse.parse(await api.getJson(url, signal));
+      return {
+        address: formatAddress(details.address),
+        // A restaurant's article is usually the building's ("Farol de Santa Luzia" got the
+        // church's), so food places get no description.
+        description: details.kinds?.split(',').includes('foods') ? null : shortDescription(details.wikipedia_extracts),
+        url: websiteUrl(details.url),
+      };
     },
   };
 }
