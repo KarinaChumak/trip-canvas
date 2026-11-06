@@ -11,7 +11,7 @@ const PRODUCTION_SERVER = 'https://trip-canvas-server.vercel.app';
 const SERVER_PROJECT_NAME = 'trip-canvas-server';
 // trip-canvas-server → Settings → General → Project ID. Vercel then sets
 // VERCEL_RELATED_PROJECTS on web deployments, with the server's branch preview host.
-const SERVER_PROJECT_ID = 'prj_REPLACE_WITH_SERVER_PROJECT_ID';
+const SERVER_PROJECT_ID = 'prj_TTayscaB5913b57lV0N9MJLXCKHE';
 // Server previews sit behind Vercel Authentication. This web env var (Preview only) holds the
 // server project's "Protection Bypass for Automation" secret. Vercel fills it in per request,
 // so the secret stays out of the build output and never reaches the browser.
