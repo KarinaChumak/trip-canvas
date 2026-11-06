@@ -71,7 +71,7 @@ export function createOpenMeteoClient({ cache }: { cache: Cache }): OpenMeteoCli
         timezone: 'auto',
       }).toString();
 
-      const { daily } = OpenMeteoResponse.parse(await api.getJson(url, signal));
+      const { daily } = await api.getJson(url, OpenMeteoResponse, signal);
       return {
         location,
         unit,
