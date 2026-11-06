@@ -12,6 +12,7 @@
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.96",
     "@hono/node-server": "^2.1.6",
+    "@trip-canvas/contracts": "workspace:*",
     "@upstash/redis": "^1.41.0",
     "ai": "^7.0.162",
     "better-sqlite3": "^13.0.3",

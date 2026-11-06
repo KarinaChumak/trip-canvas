@@ -1,3 +1,4 @@
+import type { PlaceDetails } from '@trip-canvas/contracts';
 import { z } from 'zod';
 import { createApiClient } from '../lib/api-client.js';
 import type { Cache } from '../lib/cache.js';
@@ -85,13 +86,6 @@ export type NearbyPlace = {
   latitude: number;
   longitude: number;
   distanceMeters: number;
-};
-
-/** What the details call adds to a place; each field is null when OpenTripMap doesn't have it. */
-export type PlaceDetails = {
-  address: string | null;
-  description: string | null;
-  url: string | null;
 };
 
 export type OpenTripMapClient = {

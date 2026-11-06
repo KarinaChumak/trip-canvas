@@ -28,4 +28,9 @@ describe('fetchPlaceDetails', () => {
     stubFetch(502, { error: 'Place details are unavailable' });
     await expect(fetchPlaceDetails('N1')).rejects.toThrow(/502/);
   });
+
+  it('throws on a response that breaks the contract', async () => {
+    stubFetch(200, { address: 'Alfama' });
+    await expect(fetchPlaceDetails('N1')).rejects.toThrow();
+  });
 });
