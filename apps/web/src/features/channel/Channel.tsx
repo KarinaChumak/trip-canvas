@@ -10,6 +10,7 @@ import { Spinner } from '@/components/shadcn/spinner';
 import { accessHeaders, accessQueryKey } from '@/lib/access-code';
 import type { ChatMessage } from '@/lib/chat';
 import { useSaveMessagesMutation, useSavedMessagesQuery } from '@/lib/chat-storage';
+import { ChannelHeader } from './ChannelHeader';
 import { ChatError } from './ChatError';
 import { Composer } from './Composer';
 import { EmptyCanvas } from './EmptyCanvas';
@@ -41,26 +42,35 @@ type MainChannelProps = {
 function MainChannel({ initialMessages }: MainChannelProps) {
   const queryClient = useQueryClient();
   const { mutate: saveMessages } = useSaveMessagesMutation();
-  const { messages, sendMessage, status, stop, error, regenerate } = useChat<ChatMessage>({
-    transport,
-    messages: initialMessages,
-    // Saved once per reply (also after Stop or an error), not on every token.
-    onFinish: ({ messages: all }) => saveMessages(all),
-    // A 401 means the code changed on the server: recheck it, so the code form comes
-    // back instead of every message failing. Other errors show the Retry alert.
-    onError: (error) => {
-      if (APICallError.isInstance(error) && error.statusCode === 401) {
-        void queryClient.invalidateQueries({ queryKey: accessQueryKey });
-      }
-    },
-  });
+  const { messages, setMessages, sendMessage, status, stop, error, clearError, regenerate } =
+    useChat<ChatMessage>({
+      transport,
+      messages: initialMessages,
+      // Saved once per reply (also after Stop or an error), not on every token.
+      onFinish: ({ messages: all }) => saveMessages(all),
+      // A 401 means the code changed on the server: recheck it, so the code form comes
+      // back instead of every message failing. Other errors show the Retry alert.
+      onError: (error) => {
+        if (APICallError.isInstance(error) && error.statusCode === 401) {
+          void queryClient.invalidateQueries({ queryKey: accessQueryKey });
+        }
+      },
+    });
   const busy = status === 'submitted' || status === 'streaming';
   const send = (text: string) => void sendMessage({ text });
+
+  // Only offered while idle: after Stop, onFinish could still save the old chat back.
+  function startNewChat() {
+    setMessages([]);
+    clearError();
+    saveMessages([]);
+  }
 
   return (
     // The conversation scrolls across the full window width, so its scrollbar sits at
     // the window edge; only the content inside is limited to the column width.
     <div className="flex h-dvh w-full flex-col">
+      <ChannelHeader canStartNew={messages.length > 0} busy={busy} onNewChat={startNewChat} />
       {messages.length === 0 ? (
         <EmptyCanvas onPick={send} />
       ) : (
