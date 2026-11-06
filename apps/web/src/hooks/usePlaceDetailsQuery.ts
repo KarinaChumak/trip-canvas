@@ -1,15 +1,16 @@
 import { skipToken, useQuery } from '@tanstack/react-query';
-import type { PlaceCardData } from 'catalog';
+import { PlaceDetails, placeDetailsPath } from '@trip-canvas/contracts';
 import { accessHeaders } from '@/lib/access-code';
 
-/** What a PlaceCard loads after it renders; null where OpenTripMap has nothing. */
-export type PlaceDetails = Pick<PlaceCardData, 'address' | 'description' | 'url'>;
-
-/** Address, description and website of one place, from the server's 24 h cache. */
+/**
+ * Address, description and website of one place, from the server's 24 h cache. The
+ * response is parsed with the shared contract, so a server change that breaks it shows
+ * as a failed query (the card stays without details) instead of wrong data on screen.
+ */
 export async function fetchPlaceDetails(placeId: string, signal?: AbortSignal): Promise<PlaceDetails> {
-  const res = await fetch(`/api/places/${encodeURIComponent(placeId)}`, { headers: accessHeaders(), signal });
+  const res = await fetch(placeDetailsPath(placeId), { headers: accessHeaders(), signal });
   if (!res.ok) throw new Error(`Place details failed with ${res.status}`);
-  return res.json();
+  return PlaceDetails.parse(await res.json());
 }
 
 /**

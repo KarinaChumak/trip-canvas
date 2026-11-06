@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import { Hono } from 'hono';
 import { createPlacesRoute } from '../../src/routes/places.js';
-import type { OpenTripMapClient, PlaceDetails } from '../../src/services/open-trip-map.js';
+import type { PlaceDetails } from '@trip-canvas/contracts';
+import type { OpenTripMapClient } from '../../src/services/open-trip-map.js';
 
 const DETAILS: PlaceDetails = { address: 'Largo de Santa Luzia, Alfama', description: null, url: 'http://farolsantaluzia.com/' };
 
