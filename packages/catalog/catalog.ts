@@ -82,7 +82,7 @@ const MapViewData = z.strictObject({
 export const components = {
   PlaceCard: {
     props: PlaceCardData,
-    description: 'A single place to visit, eat or drink, with category, rating and a short pitch.',
+    description: 'A single place to visit, eat or drink, with its category; the card loads its address and description itself.',
   },
   WeatherStrip: {
     props: WeatherStripData,
