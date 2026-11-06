@@ -40,4 +40,16 @@ export const validInputs = {
       },
     },
   },
+  MapView: {
+    component: {
+      type: 'MapView',
+      props: {
+        title: 'Sights in Alfama',
+        places: [
+          { name: 'Castelo de São Jorge', category: 'Castle', latitude: 38.7139, longitude: -9.1335 },
+          { name: 'Sé de Lisboa', category: 'Cathedral', latitude: 38.71, longitude: -9.1355 },
+        ],
+      },
+    },
+  },
 } satisfies Record<string, EmitComponentInput>;

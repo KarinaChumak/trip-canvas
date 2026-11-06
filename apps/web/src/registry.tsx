@@ -1,6 +1,7 @@
 import { defineRegistry } from '@json-render/react';
 import { catalog } from 'catalog';
 import { DayItinerary } from '@/components/catalog/DayItinerary';
+import { MapView } from '@/components/catalog/MapView';
 import { PlaceCard } from '@/components/catalog/PlaceCard';
 import { WeatherStrip } from '@/components/catalog/WeatherStrip';
 
@@ -13,5 +14,6 @@ export const { registry } = defineRegistry(catalog, {
     PlaceCard: ({ props }) => <PlaceCard place={props} />,
     WeatherStrip: ({ props }) => <WeatherStrip forecast={props} />,
     DayItinerary: ({ props }) => <DayItinerary day={props} />,
+    MapView: ({ props }) => <MapView map={props} />,
   },
 });
