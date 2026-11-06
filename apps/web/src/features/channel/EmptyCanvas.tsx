@@ -7,11 +7,12 @@ import {
   EmptyTitle,
 } from '@/components/shadcn/empty';
 
-// Hard-coded for phase 1; phase 8 generates these from the available tools.
+// Hard-coded until phase 8 generates them from the available tools; each one needs a
+// tool that exists today (add trains back with PR 4's findTrains).
 const SUGGESTED_PROMPTS = [
   'Plan a day in Lisbon',
   "What's the weather in Porto this weekend?",
-  'Train from Nuremberg to Munich on Friday morning',
+  'Show the sights around Alfama on a map',
 ];
 
 type EmptyCanvasProps = {
