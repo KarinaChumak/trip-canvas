@@ -15,7 +15,13 @@ function weatherTool(place: Awaited<ReturnType<NominatimClient['getGeocode']>>) 
 
 describe('getWeather tool', () => {
   it('looks up the place, then gets the forecast for its coordinates', async () => {
-    const { tool, openMeteo } = weatherTool({ name: 'Lisbon', displayName: 'Lisbon, Portugal', latitude: 38.7, longitude: -9.1 });
+    const { tool, openMeteo } = weatherTool({
+      name: 'Lisbon',
+      displayName: 'Lisbon, Portugal',
+      latitude: 38.7,
+      longitude: -9.1,
+      boundingBox: { south: 38.69, north: 38.8, west: -9.23, east: -9.09 },
+    });
 
     expect(await tool.execute!({ place: 'Lisbon', days: 3, unit: 'C' }, options)).toEqual({ ...forecast, source: 'Open-Meteo' });
     expect(openMeteo.getWeather).toHaveBeenCalledWith(

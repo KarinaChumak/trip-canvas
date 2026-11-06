@@ -27,7 +27,7 @@ describe('activeToolsFor', () => {
 
   it(`drops emit_component after ${MAX_INVALID_COMPONENTS} invalid components`, () => {
     const steps = Array.from({ length: MAX_INVALID_COMPONENTS }, () => emitStep({ error: 'bad' }));
-    expect(activeToolsFor(steps, tools)).toEqual(['getMockDay', 'getWeather']);
+    expect(activeToolsFor(steps, tools)).toEqual(['geocode', 'getMockDay', 'getWeather']);
   });
 });
 

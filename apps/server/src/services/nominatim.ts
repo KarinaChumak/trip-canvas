@@ -2,7 +2,10 @@ import { z } from 'zod';
 import { createApiClient } from '../lib/api-client.js';
 import type { Cache } from '../lib/cache.js';
 
-export type Place = { name: string; displayName: string; latitude: number; longitude: number };
+/** The area a match covers, in degrees: a whole city for "Lisbon", a few streets for "Alfama". */
+export type BoundingBox = { south: number; north: number; west: number; east: number };
+
+export type Place = { name: string; displayName: string; latitude: number; longitude: number; boundingBox: BoundingBox };
 
 export type NominatimClient = {
   /** The first match for a place name, or null when nothing matches. */
@@ -16,7 +19,14 @@ type NominatimClientDeps = {
 };
 
 const NominatimResponse = z.array(
-  z.object({ name: z.string(), display_name: z.string(), lat: z.coerce.number(), lon: z.coerce.number() }),
+  z.object({
+    name: z.string(),
+    display_name: z.string(),
+    lat: z.coerce.number(),
+    lon: z.coerce.number(),
+    // [south, north, west, east], as strings.
+    boundingbox: z.tuple([z.coerce.number(), z.coerce.number(), z.coerce.number(), z.coerce.number()]),
+  }),
 );
 
 export function createNominatimClient({ cache, userAgent }: NominatimClientDeps): NominatimClient {
@@ -39,7 +49,14 @@ export function createNominatimClient({ cache, userAgent }: NominatimClientDeps)
 
       const place = NominatimResponse.parse(await api.getJson(url, signal))[0];
       if (!place) return null;
-      return { name: place.name, displayName: place.display_name, latitude: place.lat, longitude: place.lon };
+      const [south, north, west, east] = place.boundingbox;
+      return {
+        name: place.name,
+        displayName: place.display_name,
+        latitude: place.lat,
+        longitude: place.lon,
+        boundingBox: { south, north, west, east },
+      };
     },
   };
 }

@@ -39,6 +39,10 @@ This is a demo Gen AI app.
 - Exception: flag it if a PR hand-edits a file in those component folders without saying why.
 - These paths are marked `linguist-generated` in `.gitattributes`, so GitHub collapses them in PR diffs.
 
+## PR size
+- Keep each PR under 500 changed lines (generated code excluded, see above).
+- A PR adds at most two outside data APIs (e.g. one new OpenTripMap client plus a Nominatim tool). Split anything bigger into stacked PRs.
+
 ## Git workflow
 - Before starting any coding task, create a new branch off the current base with a clear, descriptive slug (e.g. `feat/hello-page-with-date`).
 - Do not commit until the user has reviewed the changes and said to commit.
