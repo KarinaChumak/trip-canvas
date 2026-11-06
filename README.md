@@ -10,7 +10,7 @@ sticky shelf, and a dashboard.
 ## Stack
 
 pnpm workspace · React + Vite + TypeScript · Zustand + IndexedDB · json-render ·
-AI SDK · Hono on Node · Zod · SQLite (quota)
+AI SDK · Hono on Node · Zod · Upstash Redis (cache, later the weekly quota)
 
 ## Layout
 

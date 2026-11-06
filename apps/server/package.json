@@ -15,14 +15,12 @@
     "@trip-canvas/contracts": "workspace:*",
     "@upstash/redis": "^1.41.0",
     "ai": "^7.0.162",
-    "better-sqlite3": "^13.0.3",
     "catalog": "workspace:*",
     "hono": "^4.13.16",
     "lru-cache": "^11.5.3",
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^9.6.0",
     "@types/node": "^26.6.6",
     "esbuild": "0.28.2",
     "tsx": "^4.23.15",
