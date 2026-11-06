@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { fetchPlaceDetails } from '@/lib/place-details';
+import { fetchPlaceDetails } from '@/hooks/usePlaceDetailsQuery';
 
 const DETAILS = { address: 'Beco de Santa Helena 13, Alfama', description: null, url: null };
 
