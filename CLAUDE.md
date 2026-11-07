@@ -19,9 +19,11 @@ This is a demo Gen AI app.
 - shadcn/ui components live in `apps/web/src/components/shadcn/`. They are added with the shadcn CLI (`pnpm dlx shadcn@<version> add <name>` from `apps/web`), never written by hand.
 - AI Elements (chat components for the AI SDK) live in `apps/web/src/components/ai-elements/`, added the same way from `https://registry.ai-sdk.dev/<name>.json`. They import `cn` from `@/lib/utils`, so keep that re-export.
 - Do not edit files in those folders unless the user explicitly asks to customise a component.
+- Every new UI component, or new visible state of one, gets a Storybook story in `apps/web/stories/`, mirroring `src/`: `src/components/catalog/PlaceCard.tsx` → `stories/components/catalog/PlaceCard.stories.tsx`. A component added with the shadcn CLI gets its story through the component of ours that uses it. Stories mock data with MSW, never real APIs.
 
 ## Code style
 - Name a component's props type `<ComponentName>Props` (e.g. `ComposerProps`); no bare `Props` and no inline prop types.
+- Exception: components in one file that take exactly the same props share one type, named after what they take (e.g. `MessagePartsProps` for `MessageActivity` and `MessageSources`). Give a component its own type again as soon as its props differ.
 - Don't spread `...props`; destructure and pass each prop explicitly unless forwarding everything is genuinely needed.
 - Generated component folders (see above) are exempt.
 

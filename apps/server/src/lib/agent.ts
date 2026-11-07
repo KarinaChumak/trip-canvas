@@ -56,6 +56,8 @@ export function streamAgent({ model, tools, context, abortSignal }: StreamAgentO
 
   return toUIMessageStream({
     stream: result.stream,
+    // webSearch's cited pages, shown under the reply.
+    sendSources: true,
     onError: (error) => {
       console.error('[agent] stream error', error);
       // Never forward provider errors: they can echo request details.

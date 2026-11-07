@@ -4,6 +4,7 @@ import { emitComponent } from './emit-component.js';
 import { createGeocodeTool } from './geocode.js';
 import { createSearchPlacesTool } from './search-places.js';
 import { createWeatherTool } from './weather.js';
+import { webSearch } from './web-search.js';
 
 /** Every tool the agent can call, keyed by the name the model sees. */
 export function createTools({ nominatim, openMeteo, openTripMap }: Services) {
@@ -13,6 +14,7 @@ export function createTools({ nominatim, openMeteo, openTripMap }: Services) {
     geocode: createGeocodeTool({ nominatim }),
     getWeather: createWeatherTool({ nominatim, openMeteo }),
     searchPlaces: createSearchPlacesTool({ openTripMap }),
+    webSearch,
   };
 }
 

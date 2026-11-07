@@ -1,13 +1,20 @@
 import { EMIT_COMPONENT_TOOL } from 'catalog/schema';
 import { Message, MessageContent, MessageResponse } from '@/components/ai-elements/message';
-import { Spinner } from '@/components/shadcn/spinner';
+import { Source, Sources, SourcesContent, SourcesTrigger } from '@/components/ai-elements/sources';
 import { Block, BlockSkeleton } from '@/blocks/Block';
+import { activityLabel, isToolRunning } from '@/lib/activity-status';
 import type { ChatMessage } from '@/lib/chat';
+import { StatusLine } from './StatusLine';
 
 type MessageListProps = {
   messages: ChatMessage[];
-  /** True between sending and the first streamed token. */
-  waiting: boolean;
+  /** A reply is on its way: the status line shows what the assistant is doing. */
+  busy: boolean;
+};
+
+/** Shared by the components that read a whole message's parts. */
+type MessagePartsProps = {
+  parts: ChatMessage['parts'];
 };
 
 type MessagePartProps = {
@@ -21,14 +28,45 @@ function MessagePart({ part }: MessagePartProps) {
     return <MessageResponse>{part.text}</MessageResponse>;
   }
   if (part.type === `tool-${EMIT_COMPONENT_TOOL}`) {
-    if (part.state === 'input-streaming' || part.state === 'input-available') return <BlockSkeleton />;
+    if (isToolRunning(part)) return <BlockSkeleton />;
     // Rejected components are hidden: the model retries or answers in text instead.
     if (part.state === 'output-available' && 'ok' in part.output) return <Block input={part.input} />;
   }
   return null;
 }
 
-export function MessageList({ messages, waiting }: MessageListProps) {
+/** The status line under a reply that is still streaming. */
+function MessageActivity({ parts }: MessagePartsProps) {
+  const label = activityLabel(parts);
+  return label ? <StatusLine label={label} /> : null;
+}
+
+/** The pages webSearch cited in this reply, once each, in a collapsed list. */
+function MessageSources({ parts }: MessagePartsProps) {
+  // Keyed by url, so a page cited twice is listed once.
+  const urls = new Map(
+    parts.filter((part) => part.type === 'source-url').map((part) => [part.url, part.title ?? part.url]),
+  );
+  if (urls.size === 0) return null;
+
+  return (
+    <Sources>
+      <SourcesTrigger count={urls.size} />
+      <SourcesContent>
+        {[...urls].map(([url, title]) => (
+          <Source key={url} href={url} title={title} />
+        ))}
+      </SourcesContent>
+    </Sources>
+  );
+}
+
+export function MessageList({ messages, busy }: MessageListProps) {
+  const last = messages.at(-1);
+  const streamingId = busy && last?.role === 'assistant' ? last.id : null;
+  // Before the reply's first chunk there is no assistant message to put the line under.
+  const waiting = busy && last?.role === 'user';
+
   return (
     <>
       {messages.map((message) => (
@@ -40,13 +78,15 @@ export function MessageList({ messages, waiting }: MessageListProps) {
             {message.parts.map((part, i) => (
               <MessagePart key={i} part={part} />
             ))}
+            {message.id === streamingId && <MessageActivity parts={message.parts} />}
+            <MessageSources parts={message.parts} />
           </MessageContent>
         </Message>
       ))}
       {waiting && (
         <Message from="assistant">
           <MessageContent>
-            <Spinner aria-label="Thinking" />
+            <StatusLine label="Thinking" />
           </MessageContent>
         </Message>
       )}
