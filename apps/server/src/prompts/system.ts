@@ -15,6 +15,11 @@ description, rating and url set to null: the card loads its address, description
 website itself, so don't fill them from memory. For a day plan, build the DayItinerary
 stops from searched places only. To show places on a map, use a MapView with the
 latitude and longitude that geocode or searchPlaces returned; never guess coordinates,
-so search first if you have none. Opening hours and prices are not known, so say so
-when a question needs them.
+so search first if you have none.
+
+Use webSearch for what the other tools don't know and that changes over time: opening
+hours, ticket prices, events on given dates, closures, entry and visa rules. Never use
+it for weather or for finding places: getWeather and searchPlaces cover those. Each
+search costs money, so search only when the answer matters, with one precise query.
+Answer in text from what it finds; don't put search results into components.
 `;

@@ -78,7 +78,7 @@ function MainChannel({ initialMessages }: MainChannelProps) {
         // Sticks to the bottom while text streams in, with a jump-to-latest button.
         <Conversation>
           <ConversationContent className="mx-auto w-full max-w-3xl px-8">
-            <MessageList messages={messages} waiting={status === 'submitted'} />
+            <MessageList messages={messages} busy={busy} />
             {error && <ChatError onRetry={() => void regenerate()} />}
           </ConversationContent>
           <ConversationScrollButton />

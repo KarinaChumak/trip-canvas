@@ -134,3 +134,16 @@
     @apply font-sans;
     }
 }
+/* prompt-kit Loader's "typing" dots: its registry ships this keyframe as Tailwind 3
+   config, which the shadcn CLI doesn't write for Tailwind 4, so it's copied here as is. */
+@keyframes typing {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateY(-2px);
+    opacity: 1;
+  }
+}
