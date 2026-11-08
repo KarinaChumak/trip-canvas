@@ -36,14 +36,14 @@ type KindStyle = {
 };
 
 const KIND_STYLES: Record<StopKind, KindStyle> = {
-  sight: { icon: LandmarkIcon, tint: 'bg-secondary text-secondary-foreground' },
-  museum: { icon: LibraryBigIcon, tint: 'bg-stone-200 text-stone-700 dark:bg-stone-800 dark:text-stone-300' },
-  food: { icon: UtensilsIcon, tint: 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300' },
-  coffee: { icon: CoffeeIcon, tint: 'bg-amber-100 text-amber-700 dark:bg-amber-400/15 dark:text-amber-300' },
-  shopping: { icon: ShoppingBagIcon, tint: 'bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300' },
-  nightlife: { icon: MusicIcon, tint: 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300' },
-  transport: { icon: TramFrontIcon, tint: 'bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300' },
-  other: { icon: MapPinIcon, tint: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-400/15 dark:text-yellow-300' },
+  sight: { icon: LandmarkIcon, tint: 'bg-kind-sight text-kind-sight-foreground' },
+  museum: { icon: LibraryBigIcon, tint: 'bg-kind-museum text-kind-museum-foreground' },
+  food: { icon: UtensilsIcon, tint: 'bg-kind-food text-kind-food-foreground' },
+  coffee: { icon: CoffeeIcon, tint: 'bg-kind-coffee text-kind-coffee-foreground' },
+  shopping: { icon: ShoppingBagIcon, tint: 'bg-kind-shopping text-kind-shopping-foreground' },
+  nightlife: { icon: MusicIcon, tint: 'bg-kind-nightlife text-kind-nightlife-foreground' },
+  transport: { icon: TramFrontIcon, tint: 'bg-kind-transport text-kind-transport-foreground' },
+  other: { icon: MapPinIcon, tint: 'bg-kind-other text-kind-other-foreground' },
 };
 
 type DayItineraryProps = {

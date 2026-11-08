@@ -49,10 +49,10 @@ export function PlaceCard({ place: sent }: PlaceCardProps) {
         <CardAction className="flex items-center gap-1">
           {place.rating !== null && (
             <Badge
-              className="bg-amber-100 text-amber-800 dark:bg-amber-400/15 dark:text-amber-300"
+              className="bg-rating text-rating-foreground"
               aria-label={`Rated ${place.rating} out of 5`}
             >
-              <StarIcon data-icon="inline-start" className="fill-amber-400 text-amber-500" />
+              <StarIcon data-icon="inline-start" className="fill-rating-star text-rating-star" />
               {place.rating.toFixed(1)}
             </Badge>
           )}
