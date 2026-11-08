@@ -14,7 +14,7 @@ const PlaceCardData = z.strictObject({
     .string()
     .min(1)
     .nullable()
-    .describe('The id from searchPlaces; the card then loads its address, description and website itself'),
+    .describe('The id from searchPlaces, kept with the card; the card loads nothing itself'),
   category: z.string().min(1).describe('Short kind of place, e.g. "Museum", "Café", "Viewpoint"'),
   description: z.string().nullable().describe('One or two sentences on why it is worth a visit'),
   address: z.string().nullable(),
@@ -120,7 +120,7 @@ const ConnectionListData = z.strictObject({
 export const components = {
   PlaceCard: {
     props: PlaceCardData,
-    description: 'A single place to visit, eat or drink, with its category; the card loads its address and description itself.',
+    description: 'A single place to visit, eat or drink, with its category; it shows only the props it is given.',
   },
   WeatherStrip: {
     props: WeatherStripData,

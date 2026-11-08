@@ -1,19 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { JSONUIProvider, Renderer } from '@json-render/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { toSpec, type EmitComponentInput } from '@trip-canvas/catalog/schema';
 import { registry } from '@/registry';
 
 // Renderer reads state, visibility and actions from these providers.
 function render(input: EmitComponentInput) {
   return renderToStaticMarkup(
-    // PlaceCard loads its details through TanStack Query, as in the app.
-    <QueryClientProvider client={new QueryClient()}>
-      <JSONUIProvider registry={registry}>
-        <Renderer spec={toSpec(input)} registry={registry} />
-      </JSONUIProvider>
-    </QueryClientProvider>,
+    <JSONUIProvider registry={registry}>
+      <Renderer spec={toSpec(input)} registry={registry} />
+    </JSONUIProvider>,
   );
 }
 
@@ -51,15 +47,15 @@ describe('registry', () => {
     expect(html).not.toContain('Website');
   });
 
-  it('credits OpenTripMap and OpenStreetMap behind the PlaceCard info icon', () => {
+  it('credits Google Maps behind the PlaceCard info icon', () => {
     const html = render({
       component: {
         type: 'PlaceCard',
         props: { name: 'MAAT', category: 'Museum', placeId: null, description: null, address: null, rating: null, url: null },
       },
     });
-    expect(html).toContain('Places by OpenTripMap · © OpenStreetMap contributors');
-    expect(html).toContain('href="https://opentripmap.com/"');
+    expect(html).toContain('Google Maps');
+    expect(html).toContain('href="https://www.google.com/maps"');
   });
 
   it('renders a WeatherStrip with one entry per day', () => {

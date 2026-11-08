@@ -1,0 +1,8 @@
+{
+  "places": [
+    {"id": "ChIJq6qq6lmZ4jARSBYHgbzL0pE", "location": {"latitude": 13.7397361, "longitude": 100.5101943}, "formattedAddress": "327 Maha Chai Rd, Samran Rat, Phra Nakhon, Bangkok 10200, Thailand", "rating": 4.4, "websiteUri": "https://www.facebook.com/jayfaibangkok/", "displayName": {"text": "Jay Fai", "languageCode": "en"}, "primaryType": "thai_restaurant"},
+    {"id": "ChIJ8Ztv3W6Z4jARgHrNfHXrbkM", "location": {"latitude": 13.7408874, "longitude": 100.5094327}, "formattedAddress": "Yaowarat Rd, Samphanthawong, Bangkok 10100, Thailand", "rating": 4.3, "displayName": {"text": "Yaowarat Road Street Food", "languageCode": "en"}, "primaryType": "market"},
+    {"id": "ChIJb7X2e2-Z4jARn2c3r4GQZCs", "location": {"latitude": 13.7412106, "longitude": 100.5088713}, "rating": 4.6, "displayName": {"text": "Kia Gee Kao Tom Mu", "languageCode": "th"}},
+    {"id": "ChIJ5ZbSc2yZ4jAR0nZr3k7bAnE", "location": {"latitude": 13.7389012, "longitude": 100.5133261}, "displayName": {"text": "Wat Traimit", "languageCode": "en"}, "primaryType": "buddhist_temple"}
+  ]
+}
