@@ -56,4 +56,23 @@ describe('parseEnv', () => {
   it('leaves Redis off unless both URL and token are set', () => {
     expect(parseEnv({ ...REQUIRED, UPSTASH_REDIS_REST_URL: 'https://example.upstash.io' }).redis).toBeUndefined();
   });
+
+  it('turns tracing on only when both Langfuse keys are set', () => {
+    expect(parseEnv(REQUIRED).langfuse).toBeUndefined();
+    expect(parseEnv({ ...REQUIRED, LANGFUSE_PUBLIC_KEY: 'pk', LANGFUSE_SECRET_KEY: 'sk' }).langfuse).toEqual({
+      publicKey: 'pk',
+      secretKey: 'sk',
+      baseUrl: 'https://cloud.langfuse.com',
+      environment: 'local',
+    });
+  });
+
+  it('tags traces with the Vercel environment', () => {
+    const env = parseEnv({ ...REQUIRED, LANGFUSE_PUBLIC_KEY: 'pk', LANGFUSE_SECRET_KEY: 'sk', VERCEL_ENV: 'preview' });
+    expect(env.langfuse?.environment).toBe('preview');
+  });
+
+  it('rejects only one Langfuse key', () => {
+    expect(() => parseEnv({ ...REQUIRED, LANGFUSE_PUBLIC_KEY: 'pk' })).toThrow(/LANGFUSE_SECRET_KEY/);
+  });
 });

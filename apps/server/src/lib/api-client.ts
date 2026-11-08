@@ -1,3 +1,4 @@
+import { startActiveObservation, updateActiveObservation } from '@langfuse/tracing';
 import { z } from 'zod';
 import type { Cache } from './cache.js';
 
@@ -70,24 +71,30 @@ export function createApiClient({
   const enqueue = minIntervalMs > 0 ? createRequestQueue(minIntervalMs) : <T>(task: () => Promise<T>) => task();
 
   async function fetchJson(url: URL, signal?: AbortSignal, init?: RequestInit): Promise<unknown> {
-    // Give up after the timeout, or as soon as the user stops the reply.
-    const timeout = AbortSignal.timeout(timeoutMs);
-    const started = Date.now();
-    const res = await fetch(url, {
-      ...init,
-      headers: { ...headers, ...(init?.headers as Record<string, string> | undefined) },
-      signal: signal ? AbortSignal.any([timeout, signal]) : timeout,
-    });
-    const ms = Date.now() - started;
+    // One span per real request, under the tool that made it. The path only: query
+    // strings can hold keys. Without tracing set up, it just runs the callback.
+    return startActiveObservation(`http ${service}`, async (span) => {
+      // Give up after the timeout, or as soon as the user stops the reply.
+      const timeout = AbortSignal.timeout(timeoutMs);
+      const started = Date.now();
+      const res = await fetch(url, {
+        ...init,
+        headers: { ...headers, ...(init?.headers as Record<string, string> | undefined) },
+        signal: signal ? AbortSignal.any([timeout, signal]) : timeout,
+      });
+      const ms = Date.now() - started;
+      span.update({ metadata: { method: init?.method ?? 'GET', path: url.pathname, status: res.status, ms } });
 
-    if (!res.ok) {
-      // The start of the body usually says why, e.g. Nominatim's "Access denied".
-      const body = (await res.text()).slice(0, 200);
-      console.error(`[http] ${service} ${res.status} in ${ms} ms`, { body });
-      throw new Error(`${service} returned ${res.status}: ${body}`);
-    }
-    console.log(`[http] ${service} ${res.status} in ${ms} ms`);
-    return res.json();
+      if (!res.ok) {
+        // The start of the body usually says why, e.g. Nominatim's "Access denied".
+        const body = (await res.text()).slice(0, 200);
+        console.error(`[http] ${service} ${res.status} in ${ms} ms`, { body });
+        span.update({ level: 'ERROR', statusMessage: `${res.status}: ${body}` });
+        throw new Error(`${service} returned ${res.status}: ${body}`);
+      }
+      console.log(`[http] ${service} ${res.status} in ${ms} ms`);
+      return res.json();
+    });
   }
 
   // Calls on their way, by cache key: parallel tool calls for the same place (geocode
@@ -103,6 +110,8 @@ export function createApiClient({
       const parsed = schema.safeParse(hit);
       if (parsed.success) {
         console.log('[cache] hit', key);
+        // No request, so no span: mark the hit on the tool's span instead.
+        updateActiveObservation({ metadata: { cacheHit: service } });
         return parsed.data;
       }
       console.warn('[cache] stale shape, refetching', key);

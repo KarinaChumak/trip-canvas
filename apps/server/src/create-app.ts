@@ -20,10 +20,12 @@ export type AppDeps = {
   cache: Cache;
   /** When set, every /api route except health and keepalive needs `Authorization: Bearer <code>`. */
   accessCode?: string;
+  /** Sends waiting trace spans after each chat turn; left out where tracing is off. */
+  flushTracing?: () => Promise<void>;
 };
 
 /** Builds the Hono app with every route; no server is started here. */
-export function createApp({ model, tools, openTripMap, cache, accessCode }: AppDeps) {
+export function createApp({ model, tools, openTripMap, cache, accessCode, flushTracing }: AppDeps) {
   const app = new Hono();
 
   // One line per request: method, path, status and time.
@@ -38,7 +40,7 @@ export function createApp({ model, tools, openTripMap, cache, accessCode }: AppD
   });
   // The web app calls this to check a code before showing the chat.
   app.get('/api/access', (c) => c.json({ ok: true }));
-  app.route('/api', createChatRoute({ model, tools }));
+  app.route('/api', createChatRoute({ model, tools, flushTracing }));
   app.route('/api', createPlacesRoute({ openTripMap }));
 
   return app;
