@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import type { PlaceCardData } from '@trip-canvas/catalog';
 import { PlaceCard } from '@/components/catalog/PlaceCard';
@@ -25,7 +25,15 @@ const CUNHA: PlaceCardData = {
 const FRIDAY_NOON = new Date('2026-11-13T12:00:00Z');
 const LUNCH_AND_DINNER = everyDay('11:00-14:00,17:00-22:00');
 
-const render = (place: PlaceCardData, now = FRIDAY_NOON) => renderToStaticMarkup(<PlaceCard place={place} now={now} />);
+// The card reads the clock itself, so each render fixes it first.
+function render(place: PlaceCardData, now = FRIDAY_NOON) {
+  vi.useFakeTimers({ now });
+  return renderToStaticMarkup(<PlaceCard place={place} />);
+}
+
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 describe('PlaceCard', () => {
   it('renders the fields searchPlaces returned', () => {

@@ -14,6 +14,7 @@ This is a demo Gen AI app.
 
 ## Tests
 - Never colocate tests with source files. Put unit tests in the package's `test/` folder, mirroring the `src/` structure: `apps/server/src/routes/chat.ts` → `apps/server/test/routes/chat.test.ts`.
+- Don't add props or parameters that only tests or stories use. Control the environment instead: `vi.useFakeTimers({ now })` in tests, `mockdate` in a story's `beforeEach` for the clock.
 
 ## UI components
 - shadcn/ui components live in `apps/web/src/components/shadcn/`. They are added with the shadcn CLI (`pnpm dlx shadcn@<version> add <name>` from `apps/web`), never written by hand.
@@ -25,6 +26,7 @@ This is a demo Gen AI app.
 - Name a component's props type `<ComponentName>Props` (e.g. `ComposerProps`); no bare `Props` and no inline prop types.
 - Exception: components in one file that take exactly the same props share one type, named after what they take (e.g. `MessagePartsProps` for `MessageActivity` and `MessageSources`). Give a component its own type again as soon as its props differ.
 - Don't spread `...props`; destructure and pass each prop explicitly unless forwarding everything is genuinely needed.
+- Name a file after what it holds: a module of pure helper functions is `<topic>-utils.ts` (e.g. `lib/opening-hours-utils.ts`).
 - Generated component folders (see above) are exempt.
 
 ## React components

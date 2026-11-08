@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { hoursToday, isOpenAt, type OpeningHours } from '@/lib/opening-hours';
+import { hoursToday, isOpenAt, type OpeningHours } from '@/lib/opening-hours-utils';
 
 const BANGKOK = 420;
 

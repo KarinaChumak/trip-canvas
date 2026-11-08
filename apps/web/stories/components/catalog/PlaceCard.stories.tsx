@@ -1,18 +1,27 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import MockDate from 'mockdate';
 import { PLACE_KINDS, type PlaceCardData } from '@trip-canvas/catalog';
 import { PlaceCard } from '@/components/catalog/PlaceCard';
+
+/** A story's beforeEach that fixes the clock at `iso` and restores it afterwards. */
+function fixNow(iso: string) {
+  return () => {
+    MockDate.set(iso);
+    return () => MockDate.reset();
+  };
+}
 
 const meta = {
   title: 'Catalog/PlaceCard',
   component: PlaceCard,
+  // The card reads the clock, so fix it: the opening state never depends on when the
+  // story is viewed. 13 Nov 2026 is a Friday; noon in Lisbon (UTC+0).
+  beforeEach: fixNow('2026-11-13T12:00:00Z'),
 } satisfies Meta<typeof PlaceCard>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-// A fixed moment, so the opening state never depends on when the story is viewed:
-// 13 Nov 2026 is a Friday; noon in Lisbon (UTC+0).
-const FRIDAY_NOON = new Date('2026-11-13T12:00:00Z');
 const BANGKOK = 420;
 
 /** Everything searchPlaces can return: rating with reviews, price level, kind and link. */
@@ -32,7 +41,6 @@ export const FullyRated: Story = {
       hours: [null, '10:00-24:00', '10:00-24:00', '10:00-24:00', '10:00-01:00', '10:00-01:00', '11:00-15:00,18:00-01:00'],
       utcOffsetMinutes: 0,
     },
-    now: FRIDAY_NOON,
   },
 };
 
@@ -68,32 +76,33 @@ const JAY_FAI: PlaceCardData = {
 
 /** Open by the place's own clock: 13:00 on Friday in Bangkok, during the lunch sitting. */
 export const OpenNow: Story = {
-  args: { place: JAY_FAI, now: new Date('2026-11-13T06:00:00Z') },
+  args: { place: JAY_FAI },
+  beforeEach: fixNow('2026-11-13T06:00:00Z'),
 };
 
 /** Closed between the two sittings: 14:30 on Friday in Bangkok. */
 export const Closed: Story = {
-  args: { place: JAY_FAI, now: new Date('2026-11-13T07:30:00Z') },
+  args: { place: JAY_FAI },
+  beforeEach: fixNow('2026-11-13T07:30:00Z'),
 };
 
 /** Friday's "18:00-02:00" keeps the market open at 01:00 on Saturday. */
 export const OpenPastMidnight: Story = {
   args: {
     place: { ...JAY_FAI, name: 'Yaowarat Road Street Food', category: 'Market', kind: 'market', priceLevel: null, hours: everyDay('18:00-02:00') },
-    now: new Date('2026-11-13T18:00:00Z'),
   },
+  beforeEach: fixNow('2026-11-13T18:00:00Z'),
 };
 
 export const Open24Hours: Story = {
   args: {
     place: { ...JAY_FAI, name: 'Kia Gee Kao Tom Mu', category: 'Dessert shop', kind: 'cafe', hours: everyDay('00:00-24:00') },
-    now: FRIDAY_NOON,
   },
 };
 
 /** Google had no hours: no badge and no hours line. */
 export const NoHours: Story = {
-  args: { place: { ...JAY_FAI, hours: null }, now: FRIDAY_NOON },
+  args: { place: { ...JAY_FAI, hours: null } },
 };
 
 /** Every nullable field null: no kind (plain badge), rating, reviews, price, address or link. */
