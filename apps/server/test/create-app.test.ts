@@ -7,9 +7,9 @@ import { createTools } from '../src/tools/index.js';
 
 function appWith(accessCode?: string) {
   const cache = memoryCache();
-  const services = createServices({ cache, env: { NOMINATIM_USER_AGENT: 'test', RAPIDAPI_KEY: 'test', GOOGLE_MAPS_API_KEY: 'test', IGNAV_API_KEY: 'test' } });
+  const services = createServices({ cache, env: { NOMINATIM_USER_AGENT: 'test', GOOGLE_MAPS_API_KEY: 'test', IGNAV_API_KEY: 'test' } });
   const tools = createTools(services);
-  return createApp({ model: new MockLanguageModelV4(), tools, openTripMap: services.openTripMap, cache, accessCode });
+  return createApp({ model: new MockLanguageModelV4(), tools, googlePlaces: services.googlePlaces, cache, accessCode });
 }
 
 function get(app: ReturnType<typeof createApp>, path: string, code?: string) {

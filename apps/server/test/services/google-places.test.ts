@@ -1,0 +1,175 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { validateEmitComponent } from '@trip-canvas/catalog/schema';
+import { categoryFor, createGooglePlacesClient, hoursFor, kindFor, PlacePhotoNotFoundError, priceLevelFor, type PlaceSearch } from '../../src/services/google-places.js';
+// Hand-made in the shape of a Text Search answer with our field mask: the dev key is
+// not enabled for the Places API yet, so no live response could be recorded.
+import yaowarat from '../fixtures/google-places-yaowarat-street-food.json' with { type: 'json' };
+
+const SEARCH: PlaceSearch = { query: 'street food', latitude: 13.7406, longitude: 100.51, radiusMeters: 1000, limit: 5 };
+
+const googlePlaces = () => createGooglePlacesClient({ apiKey: 'test-key' });
+
+function stubFetch(body: unknown, status = 200) {
+  const fetch = vi.fn(async (_url: URL, _init: RequestInit) => new Response(JSON.stringify(body), { status }));
+  vi.stubGlobal('fetch', fetch);
+  return fetch;
+}
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+});
+
+describe('googlePlaces.searchPlaces', () => {
+  it('POSTs a Text Search biased to the circle, with the key and the Enterprise mask in headers', async () => {
+    const fetch = stubFetch(yaowarat);
+    await googlePlaces().searchPlaces(SEARCH);
+
+    const [url, init] = fetch.mock.calls[0]!;
+    expect(String(url)).toBe('https://places.googleapis.com/v1/places:searchText');
+    expect(init.method).toBe('POST');
+    expect(init.headers).toMatchObject({
+      'X-Goog-Api-Key': 'test-key',
+      'X-Goog-FieldMask':
+        'places.id,places.displayName,places.primaryType,places.types,places.location,places.formattedAddress,places.rating,places.userRatingCount,places.priceLevel,places.websiteUri,places.regularOpeningHours.periods,places.utcOffsetMinutes',
+    });
+    expect(JSON.parse(String(init.body))).toEqual({
+      textQuery: 'street food',
+      pageSize: 5,
+      languageCode: 'en',
+      locationBias: { circle: { center: { latitude: 13.7406, longitude: 100.51 }, radius: 1000 } },
+    });
+  });
+
+  it('parses each place, with null for what Google left out', async () => {
+    stubFetch(yaowarat);
+    const places = await googlePlaces().searchPlaces(SEARCH);
+
+    expect(places[0]).toEqual({
+      ...{ id: 'ChIJq6qq6lmZ4jARSBYHgbzL0pE', name: 'Jay Fai', category: 'Thai restaurant', kind: 'food', latitude: 13.7397361, longitude: 100.5101943 },
+      ...{ address: '327 Maha Chai Rd, Samran Rat, Phra Nakhon, Bangkok 10200, Thailand', rating: 4.4, reviewCount: 6214, priceLevel: 1 },
+      url: 'https://www.facebook.com/jayfaibangkok/',
+      hours: [null, null, null, '09:00-14:00,15:00-19:30', '09:00-14:00,15:00-19:30', '09:00-14:00,15:00-19:30', '09:00-14:00,15:00-19:30'],
+      utcOffsetMinutes: 420,
+    });
+    expect(places.map((p) => [p.name, p.category, p.kind, p.priceLevel])).toEqual([
+      ['Jay Fai', 'Thai restaurant', 'food', 1],
+      ['Yaowarat Road Street Food', 'Market', 'market', null],
+      // No primary type: the kind comes from the other types.
+      ['Kia Gee Kao Tom Mu', 'Place', 'cafe', null],
+      ['Wat Traimit', 'Buddhist temple', 'temple', 0],
+    ]);
+    expect(places[3]).toMatchObject({ address: null, rating: null, reviewCount: null, url: null, hours: null, utcOffsetMinutes: null });
+  });
+
+  it('gives places whose fields a PlaceCard takes as they are', async () => {
+    stubFetch(yaowarat);
+    for (const { id, latitude: _lat, longitude: _lng, ...fields } of await googlePlaces().searchPlaces(SEARCH)) {
+      const props = { ...fields, placeId: id, description: null };
+      expect(validateEmitComponent({ component: { type: 'PlaceCard', props } })).toMatchObject({ ok: true });
+    }
+  });
+
+  it('returns no places when Google answers {}', async () => {
+    stubFetch({});
+    expect(await googlePlaces().searchPlaces(SEARCH)).toEqual([]);
+  });
+
+  it('throws on an HTTP error', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    stubFetch({ error: { code: 403, status: 'PERMISSION_DENIED' } }, 403);
+    await expect(googlePlaces().searchPlaces(SEARCH)).rejects.toThrow(/Google Places returned 403/);
+  });
+});
+
+describe('hoursFor', () => {
+  const at = (day: number, hour: number, minute = 0) => ({ day, hour, minute });
+
+  it('keeps a period past midnight on the day it opens, and ends one at midnight at 24:00', async () => {
+    stubFetch(yaowarat);
+    const [, market] = await googlePlaces().searchPlaces(SEARCH);
+    expect(market!.hours).toEqual([...Array<string>(6).fill('18:00-02:00'), '18:00-24:00']);
+  });
+
+  it('reads a single period with no close as open 24 hours every day', async () => {
+    stubFetch(yaowarat);
+    const [, , dessertShop] = await googlePlaces().searchPlaces(SEARCH);
+    expect(dessertShop!.hours).toEqual(Array<string>(7).fill('00:00-24:00'));
+  });
+
+  it('joins several periods a day in order and leaves closed days null', () => {
+    const periods = [{ open: at(1, 17), close: at(1, 22) }, { open: at(1, 11, 30), close: at(1, 14) }];
+    expect(hoursFor(periods)).toEqual([null, '11:30-14:00,17:00-22:00', null, null, null, null, null]);
+  });
+
+  it('gives null without periods', () => {
+    expect(hoursFor(undefined)).toBeNull();
+    expect(hoursFor([])).toBeNull();
+  });
+});
+
+describe('kind, category and price mapping', () => {
+  it('groups types into kinds, the primary type first', () => {
+    expect(kindFor('art_museum', [])).toBe('museum');
+    expect(kindFor('cocktail_bar', [])).toBe('nightlife');
+    expect(kindFor('beach', [])).toBe('beach');
+    expect(kindFor('observation_deck', ['tourist_attraction'])).toBe('viewpoint');
+    expect(kindFor('national_park', [])).toBe('nature');
+    expect(kindFor('clothing_store', [])).toBe('shopping');
+    expect(kindFor('coffee_shop', ['cafe', 'store'])).toBe('cafe');
+    expect(kindFor(undefined, ['point_of_interest', 'establishment'])).toBe('other');
+  });
+
+  it('reads primary types as words and maps price levels to 0–4', () => {
+    expect(categoryFor('thai_restaurant')).toBe('Thai restaurant');
+    expect(categoryFor(undefined)).toBe('Place');
+    expect(priceLevelFor('PRICE_LEVEL_FREE')).toBe(0);
+    expect(priceLevelFor('PRICE_LEVEL_VERY_EXPENSIVE')).toBe(4);
+    expect(priceLevelFor('PRICE_LEVEL_UNSPECIFIED')).toBeNull();
+    expect(priceLevelFor(undefined)).toBeNull();
+  });
+});
+
+describe('googlePlaces.getPlacePhoto', () => {
+  const ID = 'ChIJq6qq6lmZ4jARSBYHgbzL0pE';
+  const PHOTOS = {
+    photos: [
+      { name: `places/${ID}/photos/AAA`, widthPx: 4032, heightPx: 3024, authorAttributions: [] },
+      { name: `places/${ID}/photos/BBB`, authorAttributions: [{ displayName: 'Somchai P.', uri: 'https://maps.google.com/maps/contrib/1' }] },
+    ],
+  };
+  const MEDIA = { name: `places/${ID}/photos/BBB/media`, photoUri: 'https://lh3.googleusercontent.com/place-photos/abc=w800' };
+
+  function stubResponses(...bodies: unknown[]) {
+    const fetch = vi.fn(async (_url: URL, _init: RequestInit) => new Response(JSON.stringify(bodies.shift())));
+    vi.stubGlobal('fetch', fetch);
+    return fetch;
+  }
+
+  it('asks details for photos only, then the media URL without a redirect, the key in a header', async () => {
+    const fetch = stubResponses(PHOTOS, MEDIA);
+
+    expect(await googlePlaces().getPlacePhoto(ID, 1, 800)).toEqual({
+      photoUri: MEDIA.photoUri,
+      author: { name: 'Somchai P.', url: 'https://maps.google.com/maps/contrib/1' },
+      count: 2,
+    });
+    const [detailsUrl, detailsInit] = fetch.mock.calls[0]!;
+    const [mediaUrl, mediaInit] = fetch.mock.calls[1]!;
+    expect(String(detailsUrl)).toBe(`https://places.googleapis.com/v1/places/${ID}`);
+    expect(detailsInit.headers).toMatchObject({ 'X-Goog-Api-Key': 'test-key', 'X-Goog-FieldMask': 'photos' });
+    expect(String(mediaUrl)).toBe(`https://places.googleapis.com/v1/places/${ID}/photos/BBB/media?maxWidthPx=800&skipHttpRedirect=true`);
+    expect(mediaInit.headers).toEqual({ 'X-Goog-Api-Key': 'test-key' });
+  });
+
+  it('has no author when Google lists none', async () => {
+    stubResponses(PHOTOS, MEDIA);
+    expect(await googlePlaces().getPlacePhoto(ID, 0, 400)).toMatchObject({ author: null, count: 2 });
+  });
+
+  it('throws not-found past the last photo, without a billed media call', async () => {
+    const fetch = stubResponses({});
+    await expect(googlePlaces().getPlacePhoto(ID, 0, 400)).rejects.toBeInstanceOf(PlacePhotoNotFoundError);
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+});

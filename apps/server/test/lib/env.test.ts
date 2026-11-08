@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { parseEnv } from '../../src/lib/env.js';
 
 // The variables every environment needs.
-const REQUIRED = { ANTHROPIC_API_KEY: 'k', RAPIDAPI_KEY: 'rapid', GOOGLE_MAPS_API_KEY: 'google', IGNAV_API_KEY: 'ignav' };
+const REQUIRED = { ANTHROPIC_API_KEY: 'k', GOOGLE_MAPS_API_KEY: 'google', IGNAV_API_KEY: 'ignav' };
 
 describe('parseEnv', () => {
   it('fails with a message naming the missing key', () => {
@@ -20,15 +20,10 @@ describe('parseEnv', () => {
       PORT: 8787,
       CHAT_MODEL: 'claude-haiku-5-5',
       NOMINATIM_USER_AGENT: expect.stringContaining('trip-canvas'),
-      RAPIDAPI_KEY: 'rapid',
       GOOGLE_MAPS_API_KEY: 'google',
       IGNAV_API_KEY: 'ignav',
       redis: undefined,
     });
-  });
-
-  it('requires RAPIDAPI_KEY', () => {
-    expect(() => parseEnv({ ANTHROPIC_API_KEY: 'k' })).toThrow(/RAPIDAPI_KEY/);
   });
 
   it('requires GOOGLE_MAPS_API_KEY', () => {
@@ -60,5 +55,24 @@ describe('parseEnv', () => {
 
   it('leaves Redis off unless both URL and token are set', () => {
     expect(parseEnv({ ...REQUIRED, UPSTASH_REDIS_REST_URL: 'https://example.upstash.io' }).redis).toBeUndefined();
+  });
+
+  it('turns tracing on only when both Langfuse keys are set', () => {
+    expect(parseEnv(REQUIRED).langfuse).toBeUndefined();
+    expect(parseEnv({ ...REQUIRED, LANGFUSE_PUBLIC_KEY: 'pk', LANGFUSE_SECRET_KEY: 'sk' }).langfuse).toEqual({
+      publicKey: 'pk',
+      secretKey: 'sk',
+      baseUrl: 'https://cloud.langfuse.com',
+      environment: 'local',
+    });
+  });
+
+  it('tags traces with the Vercel environment', () => {
+    const env = parseEnv({ ...REQUIRED, LANGFUSE_PUBLIC_KEY: 'pk', LANGFUSE_SECRET_KEY: 'sk', VERCEL_ENV: 'preview' });
+    expect(env.langfuse?.environment).toBe('preview');
+  });
+
+  it('rejects only one Langfuse key', () => {
+    expect(() => parseEnv({ ...REQUIRED, LANGFUSE_PUBLIC_KEY: 'pk' })).toThrow(/LANGFUSE_SECRET_KEY/);
   });
 });

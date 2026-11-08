@@ -1,19 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { JSONUIProvider, Renderer } from '@json-render/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { toSpec, type EmitComponentInput } from '@trip-canvas/catalog/schema';
 import { registry } from '@/registry';
 
 // Renderer reads state, visibility and actions from these providers.
 function render(input: EmitComponentInput) {
   return renderToStaticMarkup(
-    // PlaceCard loads its details through TanStack Query, as in the app.
-    <QueryClientProvider client={new QueryClient()}>
-      <JSONUIProvider registry={registry}>
-        <Renderer spec={toSpec(input)} registry={registry} />
-      </JSONUIProvider>
-    </QueryClientProvider>,
+    <JSONUIProvider registry={registry}>
+      <Renderer spec={toSpec(input)} registry={registry} />
+    </JSONUIProvider>,
   );
 }
 
@@ -25,15 +21,20 @@ describe('registry', () => {
         props: {
           name: 'Time Out Market',
           category: 'Food hall',
+          kind: 'food',
           placeId: null,
           description: 'Dozens of Lisbon kitchens under one roof.',
           address: 'Av. 24 de Julho 49',
           rating: 4.4,
+          reviewCount: 21345,
+          priceLevel: 2,
           url: 'https://www.timeoutmarket.com/lisboa/',
+          hours: null,
+          utcOffsetMinutes: null,
         },
       },
     });
-    for (const text of ['Time Out Market', 'Food hall', 'Dozens of Lisbon kitchens', '4.4']) {
+    for (const text of ['Time Out Market', 'Food hall', 'Dozens of Lisbon kitchens', '4.4 (21,345)', '$$']) {
       expect(html).toContain(text);
     }
     expect(html).toContain('href="https://www.timeoutmarket.com/lisboa/"');
@@ -43,23 +44,24 @@ describe('registry', () => {
     const html = render({
       component: {
         type: 'PlaceCard',
-        props: { name: 'MAAT', category: 'Museum', placeId: null, description: null, address: null, rating: null, url: null },
+        props: { name: 'MAAT', category: 'Museum', kind: 'museum', placeId: null, description: null, address: null, rating: null, reviewCount: null, priceLevel: null, url: null, hours: null, utcOffsetMinutes: null },
       },
     });
     expect(html).toContain('MAAT');
     expect(html).not.toContain('Rated');
+    expect(html).not.toContain('$');
     expect(html).not.toContain('Website');
   });
 
-  it('credits OpenTripMap and OpenStreetMap behind the PlaceCard info icon', () => {
+  it('credits Google Maps behind the PlaceCard info icon', () => {
     const html = render({
       component: {
         type: 'PlaceCard',
-        props: { name: 'MAAT', category: 'Museum', placeId: null, description: null, address: null, rating: null, url: null },
+        props: { name: 'MAAT', category: 'Museum', kind: 'museum', placeId: null, description: null, address: null, rating: null, reviewCount: null, priceLevel: null, url: null, hours: null, utcOffsetMinutes: null },
       },
     });
-    expect(html).toContain('Places by OpenTripMap · © OpenStreetMap contributors');
-    expect(html).toContain('href="https://opentripmap.com/"');
+    expect(html).toContain('Google Maps');
+    expect(html).toContain('href="https://www.google.com/maps"');
   });
 
   it('renders a WeatherStrip with one entry per day', () => {

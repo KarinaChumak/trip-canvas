@@ -1,18 +1,21 @@
 import { z } from 'zod';
 
-/** OpenTripMap ids look like "N4712396344" or "W96758903"; anything else never reaches the API. */
-export const PLACE_ID_PATTERN = /^[A-Za-z0-9_-]{1,40}$/;
+/** Google place ids ("ChIJ0SRzXYJ0GQ0RxsGOW3zPxV8", sometimes far longer); anything else never reaches an API. */
+export const PLACE_ID_PATTERN = /^[A-Za-z0-9_-]{1,256}$/;
 
-/** `GET /api/places/:id`: what a PlaceCard loads after it renders. */
-export function placeDetailsPath(placeId: string): string {
-  return `/api/places/${encodeURIComponent(placeId)}`;
+/** `GET /api/places/:id/photo`: photo `index` (0–9) of a place, at most `width` pixels wide. */
+export function placePhotoPath(placeId: string, index: number, width: number): string {
+  return `/api/places/${encodeURIComponent(placeId)}/photo?index=${index}&width=${width}`;
 }
 
-/** Address, a short English description and the website of one place; null where OpenTripMap has nothing. */
-export const PlaceDetails = z.object({
-  address: z.string().nullable(),
-  description: z.string().nullable(),
-  url: z.url().nullable(),
+/**
+ * One place photo: a short-lived image URL without the API key, the author Google
+ * requires to be shown with it, and how many photos the place has.
+ */
+export const PlacePhoto = z.object({
+  photoUri: z.url(),
+  author: z.object({ name: z.string(), url: z.string().nullable() }).nullable(),
+  count: z.number().int().min(1),
 });
 
-export type PlaceDetails = z.infer<typeof PlaceDetails>;
+export type PlacePhoto = z.infer<typeof PlacePhoto>;

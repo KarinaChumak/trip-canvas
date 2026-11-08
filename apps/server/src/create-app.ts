@@ -14,16 +14,18 @@ export type AppDeps = {
   model: LanguageModel;
   /** The tools the agent can call, already wired to their services. */
   tools: AgentTools;
-  /** Serves place details to the web app's PlaceCards, outside the agent loop. */
-  openTripMap: Services['openTripMap'];
+  /** Serves place photos to the web app's PlaceCards (D-050). */
+  googlePlaces: Services['googlePlaces'];
   /** Redis on Vercel, memory locally and in tests; the keepalive route writes to it. */
   cache: Cache;
   /** When set, every /api route except health and keepalive needs `Authorization: Bearer <code>`. */
   accessCode?: string;
+  /** Sends waiting trace spans after each chat turn; left out where tracing is off. */
+  flushTracing?: () => Promise<void>;
 };
 
 /** Builds the Hono app with every route; no server is started here. */
-export function createApp({ model, tools, openTripMap, cache, accessCode }: AppDeps) {
+export function createApp({ model, tools, googlePlaces, cache, accessCode, flushTracing }: AppDeps) {
   const app = new Hono();
 
   // One line per request: method, path, status and time.
@@ -38,8 +40,8 @@ export function createApp({ model, tools, openTripMap, cache, accessCode }: AppD
   });
   // The web app calls this to check a code before showing the chat.
   app.get('/api/access', (c) => c.json({ ok: true }));
-  app.route('/api', createChatRoute({ model, tools }));
-  app.route('/api', createPlacesRoute({ openTripMap }));
+  app.route('/api', createChatRoute({ model, tools, flushTracing }));
+  app.route('/api', createPlacesRoute({ googlePlaces }));
 
   return app;
 }

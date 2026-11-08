@@ -1,9 +1,10 @@
-import { ExternalLinkIcon, MapPinIcon, StarIcon, TagIcon } from 'lucide-react';
+import { ClockIcon, ExternalLinkIcon, MapPinIcon, StarIcon } from 'lucide-react';
 import type { PlaceCardData } from '@trip-canvas/catalog';
 import { Badge } from '@/components/shadcn/badge';
 import { Button } from '@/components/shadcn/button';
-import { Skeleton } from '@/components/shadcn/skeleton';
-import { usePlaceDetailsQuery } from '@/hooks/usePlaceDetailsQuery';
+import { hoursToday, isOpenAt } from '@/lib/opening-hours-utils';
+import { PlaceKindBadge } from './PlaceKindBadge';
+import { PlacePhotos } from './PlacePhotos';
 import { SourceCredit } from './SourceCredit';
 import {
   Card,
@@ -15,31 +16,33 @@ import {
   CardTitle,
 } from '@/components/shadcn/card';
 
+// Google's price levels, 0 to 4: what a screen reader hears instead of the dollar signs.
+const PRICE_LABELS = ['Free', 'Inexpensive', 'Moderate price', 'Expensive', 'Very expensive'];
+
 type PlaceCardProps = {
   place: PlaceCardData;
 };
 
+/** "11:00-14:00,17:00-22:00" → "Today 11:00–14:00, 17:00–22:00"; null → "Closed today". */
+function formatToday(day: string | null): string {
+  if (day === null) return 'Closed today';
+  return day === '00:00-24:00' ? 'Open 24 hours' : `Today ${day.replaceAll('-', '–').replaceAll(',', ', ')}`;
+}
+
 /**
- * Renders at once from what the agent sent. A card with a `placeId` then loads its
- * address, description and website, so the agent's turn never waits for them.
+ * Renders what the agent sent at once: searchPlaces already returned every field but the
+ * photos, which a card with a `placeId` loads itself (photo names can't pass through the agent, D-050).
  */
-export function PlaceCard({ place: sent }: PlaceCardProps) {
-  // `isLoading`, not `isPending`: a skipped query (no placeId) stays pending forever.
-  // On an error the card just stays without details.
-  const { data, isLoading } = usePlaceDetailsQuery(sent.placeId);
-  // What the agent sent wins over what was loaded.
-  const place: PlaceCardData = {
-    ...sent,
-    address: sent.address ?? data?.address ?? null,
-    description: sent.description ?? data?.description ?? null,
-    url: sent.url ?? data?.url ?? null,
-  };
+export function PlaceCard({ place }: PlaceCardProps) {
+  const now = new Date();
+  const open = isOpenAt(place.hours, place.utcOffsetMinutes, now);
+  const today = hoursToday(place.hours, place.utcOffsetMinutes, now);
 
   return (
-    <Card className="w-full max-w-md" aria-busy={isLoading}>
+    <Card className="w-full max-w-md">
+      {place.placeId && <PlacePhotos placeId={place.placeId} className="px-(--card-spacing)" />}
       <CardHeader>
         <CardTitle>{place.name}</CardTitle>
-        {isLoading && <Skeleton className="h-4 w-48" />}
         {place.address && (
           <CardDescription className="flex items-center gap-1.5">
             <MapPinIcon className="size-3.5 shrink-0 text-primary" aria-hidden />
@@ -50,30 +53,46 @@ export function PlaceCard({ place: sent }: PlaceCardProps) {
           {place.rating !== null && (
             <Badge
               className="bg-amber-100 text-amber-800 dark:bg-amber-400/15 dark:text-amber-300"
-              aria-label={`Rated ${place.rating} out of 5`}
+              aria-label={
+                place.reviewCount === null
+                  ? `Rated ${place.rating} out of 5`
+                  : `Rated ${place.rating} out of 5 from ${place.reviewCount.toLocaleString('en-US')} reviews`
+              }
             >
               <StarIcon data-icon="inline-start" className="fill-amber-400 text-amber-500" />
               {place.rating.toFixed(1)}
+              {place.reviewCount !== null && ` (${place.reviewCount.toLocaleString('en-US')})`}
             </Badge>
           )}
-          {/* OpenTripMap's data is under ODbL and built on OpenStreetMap, which asks for this credit. */}
-          <SourceCredit credit="Places by OpenTripMap · © OpenStreetMap contributors" href="https://opentripmap.com/" />
+          {/* Google's terms require this credit wherever its place data is shown. */}
+          <SourceCredit credit="Google Maps" href="https://www.google.com/maps" />
         </CardAction>
       </CardHeader>
-      {isLoading && (
-        <CardContent className="flex flex-col gap-2">
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-2/3" />
-        </CardContent>
-      )}
       {place.description && <CardContent>{place.description}</CardContent>}
-      <CardFooter className="justify-between gap-2">
-        <Badge variant="secondary">
-          <TagIcon data-icon="inline-start" />
-          {place.category}
-        </Badge>
+      <CardFooter className="flex-wrap gap-1">
+        <PlaceKindBadge kind={place.kind ?? 'other'} label={place.category} />
+        {place.priceLevel !== null && (
+          <Badge variant="outline" aria-label={PRICE_LABELS[place.priceLevel]}>
+            {place.priceLevel === 0 ? 'Free' : '$'.repeat(place.priceLevel)}
+          </Badge>
+        )}
+        {open !== null && (
+          <Badge
+            className={
+              open
+                ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-400/15 dark:text-emerald-300'
+                : 'bg-rose-100 text-rose-800 dark:bg-rose-400/15 dark:text-rose-300'
+            }
+          >
+            <ClockIcon data-icon="inline-start" />
+            {open ? 'Open now' : 'Closed'}
+          </Badge>
+        )}
+        {open !== null && (
+          <span className="text-xs text-muted-foreground">{formatToday(today)}</span>
+        )}
         {place.url && (
-          <Button asChild size="sm" variant="link">
+          <Button asChild size="sm" variant="link" className="ml-auto">
             <a href={place.url} target="_blank" rel="noreferrer">
               Website
               <ExternalLinkIcon data-icon="inline-end" />

@@ -9,7 +9,7 @@ import { createWeatherTool } from './weather.js';
 import { webSearch } from './web-search.js';
 
 /** Every tool the agent can call, keyed by the name the model sees. */
-export function createTools({ googleRoutes, ignav, nominatim, openMeteo, openTripMap }: Services) {
+export function createTools({ googlePlaces, googleRoutes, ignav, nominatim, openMeteo }: Services) {
   // Each tool gets only the services it calls, so this reads as a map of who uses what.
   return {
     [EMIT_COMPONENT_TOOL]: emitComponent,
@@ -17,7 +17,7 @@ export function createTools({ googleRoutes, ignav, nominatim, openMeteo, openTri
     geocode: createGeocodeTool({ nominatim }),
     getWeather: createWeatherTool({ nominatim, openMeteo }),
     searchFlights: createSearchFlightsTool({ ignav }),
-    searchPlaces: createSearchPlacesTool({ openTripMap }),
+    searchPlaces: createSearchPlacesTool({ googlePlaces }),
     webSearch,
   };
 }
