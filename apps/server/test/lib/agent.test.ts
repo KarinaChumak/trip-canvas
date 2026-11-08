@@ -7,7 +7,7 @@ import { memoryCache } from '../../src/lib/cache.js';
 import { createServices } from '../../src/services/index.js';
 import { createTools, type AgentTools } from '../../src/tools/index.js';
 
-const tools = createTools(createServices({ cache: memoryCache(), env: { NOMINATIM_USER_AGENT: 'test', RAPIDAPI_KEY: 'test', GOOGLE_MAPS_API_KEY: 'test' } }));
+const tools = createTools(createServices({ cache: memoryCache(), env: { NOMINATIM_USER_AGENT: 'test', GOOGLE_MAPS_API_KEY: 'test' } }));
 
 const usage = {
   inputTokens: { total: 3, noCache: 3, cacheRead: undefined, cacheWrite: undefined },

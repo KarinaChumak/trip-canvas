@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
-import { PLACE_ID_PATTERN, type PlaceDetails, type PlacePhoto } from '@trip-canvas/contracts';
+import { PLACE_ID_PATTERN, type PlacePhoto } from '@trip-canvas/contracts';
 import type { Services } from '../services/index.js';
 import { PlacePhotoNotFoundError } from '../services/google-places.js';
 
@@ -10,27 +10,14 @@ const PhotoQuery = z.object({
   width: z.coerce.number().int().min(100).max(1600),
 });
 
-type PlacesRouteDeps = Pick<Services, 'openTripMap' | 'googlePlaces'>;
+type PlacesRouteDeps = Pick<Services, 'googlePlaces'>;
 
 /**
- * Details and photos for one place, loaded by the PlaceCard after it renders, so the
- * agent's turn doesn't wait for them. Details come from the 24 h cache after the first call.
+ * Photos for one place, loaded by the PlaceCard after it renders, so the agent's turn
+ * doesn't wait for them.
  */
-export function createPlacesRoute({ openTripMap, googlePlaces }: PlacesRouteDeps) {
+export function createPlacesRoute({ googlePlaces }: PlacesRouteDeps) {
   const route = new Hono();
-
-  route.get('/places/:id', async (c) => {
-    const id = c.req.param('id');
-    if (!PLACE_ID_PATTERN.test(id)) return c.json({ error: 'Invalid place id' }, 400);
-
-    try {
-      const details: PlaceDetails = await openTripMap.getPlaceDetails(id, c.req.raw.signal);
-      return c.json(details);
-    } catch {
-      // The API client has already logged the cause.
-      return c.json({ error: 'Place details are unavailable' }, 502);
-    }
-  });
 
   // Each call is billed (Place Photos), so the card asks only for what it shows; Google's
   // terms forbid caching it (D-043, D-050).
