@@ -1,5 +1,5 @@
 import { convertToModelMessages, type ModelMessage, type UIMessage } from 'ai';
-import { buildCatalogPrompt } from 'catalog/prompt';
+import { buildCatalogPrompt } from '@trip-canvas/catalog/prompt';
 import { BASE_SYSTEM_PROMPT } from '../prompts/system.js';
 
 /** Context rule from the design: only the last 20 messages reach the model. */

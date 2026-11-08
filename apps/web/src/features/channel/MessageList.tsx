@@ -1,4 +1,4 @@
-import { EMIT_COMPONENT_TOOL } from 'catalog/schema';
+import { EMIT_COMPONENT_TOOL } from '@trip-canvas/catalog/schema';
 import { Message, MessageContent, MessageResponse } from '@/components/ai-elements/message';
 import { Source, Sources, SourcesContent, SourcesTrigger } from '@/components/ai-elements/sources';
 import { Block, BlockSkeleton } from '@/blocks/Block';

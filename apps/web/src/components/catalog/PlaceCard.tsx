@@ -1,5 +1,5 @@
 import { ExternalLinkIcon, MapPinIcon, StarIcon, TagIcon } from 'lucide-react';
-import type { PlaceCardData } from 'catalog';
+import type { PlaceCardData } from '@trip-canvas/catalog';
 import { Badge } from '@/components/shadcn/badge';
 import { Button } from '@/components/shadcn/button';
 import { Skeleton } from '@/components/shadcn/skeleton';

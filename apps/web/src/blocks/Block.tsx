@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { JSONUIProvider, Renderer } from '@json-render/react';
-import { validateEmitComponent, type EmitComponentInput } from 'catalog/schema';
+import { validateEmitComponent, type EmitComponentInput } from '@trip-canvas/catalog/schema';
 import { Skeleton } from '@/components/shadcn/skeleton';
 import { registry } from '@/registry';
 import { BlockErrorBoundary } from './BlockErrorBoundary';

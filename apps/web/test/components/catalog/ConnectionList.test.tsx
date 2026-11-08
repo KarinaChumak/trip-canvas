@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
-import type { ConnectionListData, ConnectionOptionData } from 'catalog';
+import type { ConnectionListData, ConnectionOptionData } from '@trip-canvas/catalog';
 import { ConnectionList } from '@/components/catalog/ConnectionList';
 
 function ice(line: string, departureTime: string, departureDate = '2026-11-13'): ConnectionOptionData {

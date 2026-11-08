@@ -1,12 +1,12 @@
 {
-  "name": "catalog",
+  "name": "@trip-canvas/catalog",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./catalog.ts",
-    "./schema": "./schema.ts",
-    "./prompt": "./prompt.ts"
+    ".": "./src/catalog.ts",
+    "./schema": "./src/schema.ts",
+    "./prompt": "./src/prompt.ts"
   },
   "scripts": {
     "typecheck": "tsc -p ."

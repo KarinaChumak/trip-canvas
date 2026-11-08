@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import type { ConnectionOptionData } from 'catalog';
+import type { ConnectionOptionData } from '@trip-canvas/catalog';
 import { ConnectionList } from '@/components/catalog/ConnectionList';
 
 const meta = {

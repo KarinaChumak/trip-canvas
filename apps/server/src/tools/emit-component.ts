@@ -4,7 +4,7 @@ import {
   validateEmitComponent,
   type EmitComponentInput,
   type EmitComponentOutput,
-} from 'catalog/schema';
+} from '@trip-canvas/catalog/schema';
 
 /**
  * The model calls this to hand one catalog component to the web app, which displays

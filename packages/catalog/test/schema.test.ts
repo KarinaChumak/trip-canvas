@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { componentNames } from '../catalog.js';
-import { emitComponentJsonSchema, ROOT_KEY, toSpec, validateEmitComponent, validateSpec } from '../schema.js';
+import { componentNames } from '../src/catalog.js';
+import { emitComponentJsonSchema, ROOT_KEY, toSpec, validateEmitComponent, validateSpec } from '../src/schema.js';
 import { validInputs } from './fixtures.js';
 
 /** Every object in a JSON Schema, depth first. */

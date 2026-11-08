@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { validateEmitComponent } from 'catalog/schema';
+import { validateEmitComponent } from '@trip-canvas/catalog/schema';
 import { createGoogleRoutesClient, localDateTime, modeFor, type ConnectionSearch } from '../../src/services/google-routes.js';
 import bangkok from '../fixtures/google-routes-bangkok-chiang-mai.json' with { type: 'json' };
 import berlin from '../fixtures/google-routes-berlin-munich.json' with { type: 'json' };

@@ -1,5 +1,5 @@
 import { stepCountIs, streamText, toUIMessageStream, type LanguageModel, type StepResult } from 'ai';
-import { EMIT_COMPONENT_TOOL } from 'catalog/schema';
+import { EMIT_COMPONENT_TOOL } from '@trip-canvas/catalog/schema';
 import type { AgentTools } from '../tools/index.js';
 import type { ChatContext } from './context.js';
 

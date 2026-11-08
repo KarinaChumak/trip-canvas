@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { JSONUIProvider, Renderer } from '@json-render/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { toSpec, type EmitComponentInput } from 'catalog/schema';
+import { toSpec, type EmitComponentInput } from '@trip-canvas/catalog/schema';
 import { registry } from '@/registry';
 
 // Renderer reads state, visibility and actions from these providers.

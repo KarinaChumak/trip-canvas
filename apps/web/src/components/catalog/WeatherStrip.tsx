@@ -10,7 +10,7 @@ import {
   SunIcon,
   type LucideIcon,
 } from 'lucide-react';
-import type { WeatherStripData } from 'catalog';
+import type { WeatherStripData } from '@trip-canvas/catalog';
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/shadcn/card';
 import { Item, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from '@/components/shadcn/item';
 import { formatDay } from '@/lib/format';

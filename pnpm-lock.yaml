@@ -217,6 +217,9 @@ importers:
       '@hono/node-server':
         specifier: ^2.1.6
         version: 2.1.6(hono@4.13.16)
+      '@trip-canvas/catalog':
+        specifier: workspace:*
+        version: link:../../packages/catalog
       '@trip-canvas/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
@@ -226,9 +229,6 @@ importers:
       ai:
         specifier: 'catalog:'
         version: 7.0.162(zod@4.6.7)
-      catalog:
-        specifier: workspace:*
-        version: link:../../packages/catalog
       hono:
         specifier: ^4.13.16
         version: 4.13.16
@@ -269,15 +269,15 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.104.5
         version: 5.104.5(@types/react@19.3.0)(react@19.3.1)
+      '@trip-canvas/catalog':
+        specifier: workspace:*
+        version: link:../../packages/catalog
       '@trip-canvas/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
       ai:
         specifier: 'catalog:'
         version: 7.0.162(zod@4.6.7)
-      catalog:
-        specifier: workspace:*
-        version: link:../../packages/catalog
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1

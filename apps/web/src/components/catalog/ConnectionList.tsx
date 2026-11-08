@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
-import type { ConnectionListData } from 'catalog';
+import type { ConnectionListData } from '@trip-canvas/catalog';
 import { Button } from '@/components/shadcn/button';
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/shadcn/card';
 import { ItemGroup } from '@/components/shadcn/item';

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import type { EmitComponentInput } from 'catalog/schema';
+import type { EmitComponentInput } from '@trip-canvas/catalog/schema';
 import { Block } from '@/blocks/Block';
 
 // PlaceCard loads its details through TanStack Query, as in the app.
