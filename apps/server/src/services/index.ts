@@ -1,5 +1,6 @@
 import type { Cache } from '../lib/cache.js';
 import type { Env } from '../lib/env.js';
+import { createGooglePlacesClient } from './google-places.js';
 import { createGoogleRoutesClient } from './google-routes.js';
 import { createNominatimClient } from './nominatim.js';
 import { createOpenMeteoClient } from './open-meteo.js';
@@ -17,6 +18,7 @@ type ServicesDeps = {
  */
 export function createServices({ cache, env }: ServicesDeps) {
   return {
+    googlePlaces: createGooglePlacesClient({ apiKey: env.GOOGLE_MAPS_API_KEY }),
     googleRoutes: createGoogleRoutesClient({ apiKey: env.GOOGLE_MAPS_API_KEY }),
     nominatim: createNominatimClient({ cache, userAgent: env.NOMINATIM_USER_AGENT }),
     openMeteo: createOpenMeteoClient({ cache }),
