@@ -12,6 +12,8 @@ export const MAX_BODY_BYTES = 1024 * 1024;
 // Loose on purpose: the AI SDK owns the part shapes; we only check the envelope.
 // No `system` role: the server writes the system prompt, a client never sends one.
 const ChatBodySchema = z.object({
+  // useChat's chat id; groups a conversation's turns into one Langfuse session.
+  id: z.string().max(200).optional(),
   messages: z
     .array(
       z.looseObject({
@@ -23,10 +25,10 @@ const ChatBodySchema = z.object({
     .min(1),
 });
 
-type ChatRouteDeps = { model: LanguageModel; tools: AgentTools };
+type ChatRouteDeps = { model: LanguageModel; tools: AgentTools; flushTracing?: () => Promise<void> };
 
 /** HTTP only: validate the request, hand it to the agent, return the stream. */
-export function createChatRoute({ model, tools }: ChatRouteDeps) {
+export function createChatRoute({ model, tools, flushTracing }: ChatRouteDeps) {
   const route = new Hono();
 
   route.post(
@@ -39,7 +41,14 @@ export function createChatRoute({ model, tools }: ChatRouteDeps) {
       }
 
       const context = await buildContext(parsed.data.messages as UIMessage[]);
-      const stream = streamAgent({ model, tools, context, abortSignal: c.req.raw.signal });
+      const stream = streamAgent({
+        model,
+        tools,
+        context,
+        chatId: parsed.data.id,
+        abortSignal: c.req.raw.signal,
+        flushTracing,
+      });
 
       // consumeSseStream keeps the stream draining after a disconnect so abort cleanup runs.
       return createUIMessageStreamResponse({ stream, consumeSseStream: consumeStream });

@@ -1,3 +1,5 @@
+import { propagateAttributes } from '@langfuse/tracing';
+import { waitUntil } from '@vercel/functions';
 import { stepCountIs, streamText, toUIMessageStream, type LanguageModel, type StepResult } from 'ai';
 import { EMIT_COMPONENT_TOOL } from '@trip-canvas/catalog/schema';
 import type { AgentTools } from '../tools/index.js';
@@ -30,13 +32,18 @@ type StreamAgentOptions = {
   model: LanguageModel;
   tools: AgentTools;
   context: ChatContext;
+  /** The client's chat id; all turns of one chat share a Langfuse session. */
+  chatId?: string;
   /** Aborting it (the client pressed Stop or disconnected) cancels the model call. */
   abortSignal?: AbortSignal;
+  /** Called once the turn has ended, so its trace leaves before the function is frozen. */
+  flushTracing?: () => Promise<void>;
 };
 
 /** Runs one agent turn and returns it as a UI message stream for `useChat`. */
-export function streamAgent({ model, tools, context, abortSignal }: StreamAgentOptions) {
-  const result = streamText({
+export function streamAgent({ model, tools, context, chatId, abortSignal, flushTracing }: StreamAgentOptions) {
+  // Names the trace and groups it by chat. Without tracing set up, it changes nothing.
+  const result = propagateAttributes({ traceName: 'chat', sessionId: chatId }, () => streamText({
     model,
     system: context.system,
     messages: context.messages,
@@ -52,7 +59,8 @@ export function streamAgent({ model, tools, context, abortSignal }: StreamAgentO
     onStepEnd: ({ stepNumber, finishReason, usage }) => {
       console.log(`[agent] step ${stepNumber + 1} ${finishReason}`, { in: usage.inputTokens, out: usage.outputTokens });
     },
-  });
+    telemetry: { functionId: 'chat' },
+  }));
 
   return toUIMessageStream({
     stream: result.stream,
@@ -65,6 +73,8 @@ export function streamAgent({ model, tools, context, abortSignal }: StreamAgentO
     },
     onEnd: ({ isAborted, isCancelled }) => {
       if (isAborted || isCancelled) console.log('[agent] aborted by client');
+      // On Vercel this keeps the function alive until the spans are sent.
+      if (flushTracing) waitUntil(flushTracing().catch((err) => console.warn('[tracing] flush failed', err)));
     },
   });
 }

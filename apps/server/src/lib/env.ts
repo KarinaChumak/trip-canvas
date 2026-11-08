@@ -21,13 +21,25 @@ const EnvSchema = z
     UPSTASH_REDIS_REST_TOKEN: z.string().trim().min(1).optional(),
     KV_REST_API_URL: z.url().optional(),
     KV_REST_API_TOKEN: z.string().trim().min(1).optional(),
+    // Langfuse project keys for tracing (tokens, cost, tool and API calls per chat
+    // turn). Unset: tracing is off. cloud.langfuse.com is the EU region.
+    LANGFUSE_PUBLIC_KEY: z.string().trim().min(1).optional(),
+    LANGFUSE_SECRET_KEY: z.string().trim().min(1).optional(),
+    LANGFUSE_BASE_URL: z.url().default('https://cloud.langfuse.com'),
     // Set to "1" by Vercel on every deployment.
     VERCEL: z.string().optional(),
+    // "production", "preview" or "development", set by Vercel.
+    VERCEL_ENV: z.string().optional(),
   })
   // A deployed server without a code would let anyone spend the Anthropic key.
   .refine((env) => !env.VERCEL || env.ACCESS_CODE, {
     path: ['ACCESS_CODE'],
     message: 'is required on Vercel',
+  })
+  // One key without the other is a typo, not "tracing off".
+  .refine((env) => !env.LANGFUSE_PUBLIC_KEY === !env.LANGFUSE_SECRET_KEY, {
+    path: ['LANGFUSE_SECRET_KEY'],
+    message: 'set both Langfuse keys or neither',
   })
   .transform(
     ({
@@ -36,11 +48,25 @@ const EnvSchema = z
       UPSTASH_REDIS_REST_TOKEN,
       KV_REST_API_URL,
       KV_REST_API_TOKEN,
+      LANGFUSE_PUBLIC_KEY,
+      LANGFUSE_SECRET_KEY,
+      LANGFUSE_BASE_URL,
+      VERCEL_ENV,
       ...env
     }) => {
       const url = UPSTASH_REDIS_REST_URL ?? KV_REST_API_URL;
       const token = UPSTASH_REDIS_REST_TOKEN ?? KV_REST_API_TOKEN;
-      return { ...env, redis: url && token ? { url, token } : undefined };
+      const langfuse =
+        LANGFUSE_PUBLIC_KEY && LANGFUSE_SECRET_KEY
+          ? {
+              publicKey: LANGFUSE_PUBLIC_KEY,
+              secretKey: LANGFUSE_SECRET_KEY,
+              baseUrl: LANGFUSE_BASE_URL,
+              // Keeps prod, preview and local runs apart in Langfuse.
+              environment: VERCEL_ENV ?? 'local',
+            }
+          : undefined;
+      return { ...env, redis: url && token ? { url, token } : undefined, langfuse };
     },
   );
 
