@@ -10,7 +10,7 @@ describe('webSearch tool', () => {
   });
 
   it('is one of the tools the agent sees', () => {
-    const services = createServices({ cache: memoryCache(), env: { NOMINATIM_USER_AGENT: 'test', RAPIDAPI_KEY: 'test', GOOGLE_MAPS_API_KEY: 'test' } });
+    const services = createServices({ cache: memoryCache(), env: { NOMINATIM_USER_AGENT: 'test', RAPIDAPI_KEY: 'test', GOOGLE_MAPS_API_KEY: 'test', IGNAV_API_KEY: 'test' } });
     expect(createTools(services).webSearch).toBe(webSearch);
   });
 });

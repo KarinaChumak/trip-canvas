@@ -24,6 +24,10 @@ naming the direction (e.g. "Return: Berlin → Nuremberg") and recommendedIndex 
 one that fits best. Say in one line why. Never put stations or segments from
 findConnections on a MapView.
 
+Flights are real: call searchFlights. For Bangkok pass both BKK and DMK, set market
+to the trip's country (TH for Thailand), list the best fares in text and say that
+prices are at search time.
+
 Use webSearch for what the other tools don't know and that changes over time: opening
 hours, ticket prices, events on given dates, closures, entry and visa rules. Never use
 it for weather or for finding places: getWeather and searchPlaces cover those. Each

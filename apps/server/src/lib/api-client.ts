@@ -14,7 +14,7 @@ export type ApiClientOptions = {
   /** Query parameters left out of the cache key, such as API keys. */
   secretParams?: string[];
   /**
-   * Where GET responses are kept and for how long. Left out for APIs whose terms
+   * Where responses are kept and for how long. Left out for APIs whose terms
    * forbid storing their answers (Google, D-043).
    */
   cache?: { store: Cache; ttlSeconds: number };
@@ -30,8 +30,9 @@ export type ApiClient = {
    */
   getJson<T>(url: URL, schema: z.ZodType<T>, signal?: AbortSignal): Promise<T>;
   /**
-   * POSTs `body` as JSON and returns the answer parsed with `schema`. Never cached:
-   * it is for APIs whose terms forbid storing their answers (Google, D-043).
+   * POSTs `body` as JSON and returns the answer parsed with `schema`. Cached like
+   * `getJson` when the client has a cache (Ignav, whose searches are paid), keyed by
+   * the path and the body; never for clients without one (Google, D-043).
    */
   postJson<T>(url: URL, body: unknown, schema: z.ZodType<T>, signal?: AbortSignal): Promise<T>;
 };
@@ -44,6 +45,15 @@ export function cacheKey(service: string, url: URL, secretParams: string[] = [])
   const params = [...url.searchParams].filter(([name]) => !secretParams.includes(name));
   params.sort(([a], [b]) => a.localeCompare(b));
   return `${service.toLowerCase()}:${url.pathname}?${new URLSearchParams(params)}`;
+}
+
+/** JSON with object keys sorted at every level, so field order doesn't change a cache key. */
+export function stableJson(value: unknown): string {
+  return JSON.stringify(value, (_key, v: unknown) =>
+    v && typeof v === 'object' && !Array.isArray(v)
+      ? Object.fromEntries(Object.entries(v).sort(([a], [b]) => a.localeCompare(b)))
+      : v,
+  );
 }
 
 /** Runs tasks one at a time, starting each at least `minIntervalMs` after the previous one ended. */
@@ -113,11 +123,11 @@ export function createApiClient({
     return undefined;
   }
 
-  async function load<T>(key: string, url: URL, schema: z.ZodType<T>, signal?: AbortSignal): Promise<T> {
+  async function load<T>(key: string, url: URL, schema: z.ZodType<T>, signal?: AbortSignal, init?: RequestInit): Promise<T> {
     console.log('[cache] miss', key);
     let request = inFlight.get(key);
     if (!request) {
-      request = enqueue(() => fetchJson(url, signal)).finally(() => inFlight.delete(key));
+      request = enqueue(() => fetchJson(url, signal, init)).finally(() => inFlight.delete(key));
       inFlight.set(key, request);
     }
     const raw = await request;
@@ -147,7 +157,9 @@ export function createApiClient({
 
     async postJson(url, body, schema, signal) {
       const init = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) };
-      return parse(await enqueue(() => fetchJson(url, signal, init)), schema);
+      if (!cache) return parse(await enqueue(() => fetchJson(url, signal, init)), schema);
+      const key = `${cacheKey(service, url, secretParams)} ${stableJson(body)}`;
+      return (await readCache(key, schema)) ?? load(key, url, schema, signal, init);
     },
   };
 }

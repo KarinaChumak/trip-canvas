@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { parseEnv } from '../../src/lib/env.js';
 
 // The variables every environment needs.
-const REQUIRED = { ANTHROPIC_API_KEY: 'k', RAPIDAPI_KEY: 'rapid', GOOGLE_MAPS_API_KEY: 'google' };
+const REQUIRED = { ANTHROPIC_API_KEY: 'k', RAPIDAPI_KEY: 'rapid', GOOGLE_MAPS_API_KEY: 'google', IGNAV_API_KEY: 'ignav' };
 
 describe('parseEnv', () => {
   it('fails with a message naming the missing key', () => {
@@ -22,6 +22,7 @@ describe('parseEnv', () => {
       NOMINATIM_USER_AGENT: expect.stringContaining('trip-canvas'),
       RAPIDAPI_KEY: 'rapid',
       GOOGLE_MAPS_API_KEY: 'google',
+      IGNAV_API_KEY: 'ignav',
       redis: undefined,
     });
   });
@@ -32,6 +33,10 @@ describe('parseEnv', () => {
 
   it('requires GOOGLE_MAPS_API_KEY', () => {
     expect(() => parseEnv({ ...REQUIRED, GOOGLE_MAPS_API_KEY: ' ' })).toThrow(/GOOGLE_MAPS_API_KEY/);
+  });
+
+  it('requires IGNAV_API_KEY', () => {
+    expect(() => parseEnv({ ...REQUIRED, IGNAV_API_KEY: '' })).toThrow(/IGNAV_API_KEY/);
   });
 
   it('coerces PORT to a number', () => {
