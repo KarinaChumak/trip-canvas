@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { categoryFor, createGooglePlacesClient, type PlaceSearch } from '../../src/services/google-places.js';
+import { validateEmitComponent } from '@trip-canvas/catalog/schema';
+import { categoryFor, createGooglePlacesClient, kindFor, priceLevelFor, type PlaceSearch } from '../../src/services/google-places.js';
 // Hand-made in the shape of a Text Search answer with our field mask: the dev key is
 // not enabled for the Places API yet, so no live response could be recorded.
 import yaowarat from '../fixtures/google-places-yaowarat-street-food.json' with { type: 'json' };
@@ -30,7 +31,7 @@ describe('googlePlaces.searchPlaces', () => {
     expect(init.headers).toMatchObject({
       'X-Goog-Api-Key': 'test-key',
       'X-Goog-FieldMask':
-        'places.id,places.displayName,places.primaryType,places.location,places.formattedAddress,places.rating,places.websiteUri',
+        'places.id,places.displayName,places.primaryType,places.types,places.location,places.formattedAddress,places.rating,places.userRatingCount,places.priceLevel,places.websiteUri',
     });
     expect(JSON.parse(String(init.body))).toEqual({
       textQuery: 'street food',
@@ -45,17 +46,26 @@ describe('googlePlaces.searchPlaces', () => {
     const places = await googlePlaces().searchPlaces(SEARCH);
 
     expect(places[0]).toEqual({
-      ...{ id: 'ChIJq6qq6lmZ4jARSBYHgbzL0pE', name: 'Jay Fai', category: 'Thai restaurant', latitude: 13.7397361, longitude: 100.5101943 },
-      ...{ address: '327 Maha Chai Rd, Samran Rat, Phra Nakhon, Bangkok 10200, Thailand', rating: 4.4 },
+      ...{ id: 'ChIJq6qq6lmZ4jARSBYHgbzL0pE', name: 'Jay Fai', category: 'Thai restaurant', kind: 'food', latitude: 13.7397361, longitude: 100.5101943 },
+      ...{ address: '327 Maha Chai Rd, Samran Rat, Phra Nakhon, Bangkok 10200, Thailand', rating: 4.4, reviewCount: 6214, priceLevel: 1 },
       url: 'https://www.facebook.com/jayfaibangkok/',
     });
-    expect(places.map((p) => [p.name, p.category])).toEqual([
-      ['Jay Fai', 'Thai restaurant'],
-      ['Yaowarat Road Street Food', 'Market'],
-      ['Kia Gee Kao Tom Mu', 'Place'],
-      ['Wat Traimit', 'Buddhist temple'],
+    expect(places.map((p) => [p.name, p.category, p.kind, p.priceLevel])).toEqual([
+      ['Jay Fai', 'Thai restaurant', 'food', 1],
+      ['Yaowarat Road Street Food', 'Market', 'market', null],
+      // No primary type: the kind comes from the other types.
+      ['Kia Gee Kao Tom Mu', 'Place', 'cafe', null],
+      ['Wat Traimit', 'Buddhist temple', 'temple', 0],
     ]);
-    expect(places[3]).toMatchObject({ address: null, rating: null, url: null });
+    expect(places[3]).toMatchObject({ address: null, rating: null, reviewCount: null, url: null });
+  });
+
+  it('gives places whose fields a PlaceCard takes as they are', async () => {
+    stubFetch(yaowarat);
+    for (const { id, latitude: _lat, longitude: _lng, ...fields } of await googlePlaces().searchPlaces(SEARCH)) {
+      const props = { ...fields, placeId: id, description: null };
+      expect(validateEmitComponent({ component: { type: 'PlaceCard', props } })).toMatchObject({ ok: true });
+    }
   });
 
   it('returns no places when Google answers {}', async () => {
@@ -70,7 +80,24 @@ describe('googlePlaces.searchPlaces', () => {
   });
 });
 
-it('reads primary types as words', () => {
-  expect(categoryFor('thai_restaurant')).toBe('Thai restaurant');
-  expect(categoryFor(undefined)).toBe('Place');
+describe('kind, category and price mapping', () => {
+  it('groups types into kinds, the primary type first', () => {
+    expect(kindFor('art_museum', [])).toBe('museum');
+    expect(kindFor('cocktail_bar', [])).toBe('nightlife');
+    expect(kindFor('beach', [])).toBe('beach');
+    expect(kindFor('observation_deck', ['tourist_attraction'])).toBe('viewpoint');
+    expect(kindFor('national_park', [])).toBe('nature');
+    expect(kindFor('clothing_store', [])).toBe('shopping');
+    expect(kindFor('coffee_shop', ['cafe', 'store'])).toBe('cafe');
+    expect(kindFor(undefined, ['point_of_interest', 'establishment'])).toBe('other');
+  });
+
+  it('reads primary types as words and maps price levels to 0–4', () => {
+    expect(categoryFor('thai_restaurant')).toBe('Thai restaurant');
+    expect(categoryFor(undefined)).toBe('Place');
+    expect(priceLevelFor('PRICE_LEVEL_FREE')).toBe(0);
+    expect(priceLevelFor('PRICE_LEVEL_VERY_EXPENSIVE')).toBe(4);
+    expect(priceLevelFor('PRICE_LEVEL_UNSPECIFIED')).toBeNull();
+    expect(priceLevelFor(undefined)).toBeNull();
+  });
 });

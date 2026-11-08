@@ -16,7 +16,7 @@ function render(input: EmitComponentInput) {
 const place: EmitComponentInput = {
   component: {
     type: 'PlaceCard',
-    props: { name: 'MAAT', category: 'Museum', placeId: null, description: null, address: null, rating: 4.5, url: null },
+    props: { name: 'MAAT', category: 'Museum', kind: 'museum', placeId: null, description: null, address: null, rating: 4.5, reviewCount: null, priceLevel: null, url: null },
   },
 };
 

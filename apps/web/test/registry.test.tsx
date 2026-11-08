@@ -21,15 +21,18 @@ describe('registry', () => {
         props: {
           name: 'Time Out Market',
           category: 'Food hall',
+          kind: 'food',
           placeId: null,
           description: 'Dozens of Lisbon kitchens under one roof.',
           address: 'Av. 24 de Julho 49',
           rating: 4.4,
+          reviewCount: 21345,
+          priceLevel: 2,
           url: 'https://www.timeoutmarket.com/lisboa/',
         },
       },
     });
-    for (const text of ['Time Out Market', 'Food hall', 'Dozens of Lisbon kitchens', '4.4']) {
+    for (const text of ['Time Out Market', 'Food hall', 'Dozens of Lisbon kitchens', '4.4 (21,345)', '$$']) {
       expect(html).toContain(text);
     }
     expect(html).toContain('href="https://www.timeoutmarket.com/lisboa/"');
@@ -39,11 +42,12 @@ describe('registry', () => {
     const html = render({
       component: {
         type: 'PlaceCard',
-        props: { name: 'MAAT', category: 'Museum', placeId: null, description: null, address: null, rating: null, url: null },
+        props: { name: 'MAAT', category: 'Museum', kind: 'museum', placeId: null, description: null, address: null, rating: null, reviewCount: null, priceLevel: null, url: null },
       },
     });
     expect(html).toContain('MAAT');
     expect(html).not.toContain('Rated');
+    expect(html).not.toContain('$');
     expect(html).not.toContain('Website');
   });
 
@@ -51,7 +55,7 @@ describe('registry', () => {
     const html = render({
       component: {
         type: 'PlaceCard',
-        props: { name: 'MAAT', category: 'Museum', placeId: null, description: null, address: null, rating: null, url: null },
+        props: { name: 'MAAT', category: 'Museum', kind: 'museum', placeId: null, description: null, address: null, rating: null, reviewCount: null, priceLevel: null, url: null },
       },
     });
     expect(html).toContain('Google Maps');

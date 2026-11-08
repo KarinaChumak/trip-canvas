@@ -106,7 +106,8 @@ describe('openTripMap.searchPlaces', () => {
   it('gives places that fit a PlaceCard, with the id as placeId', async () => {
     stubFetch(RADIUS);
     const [place] = await openTripMap().searchPlaces(ALFAMA);
-    const props = { name: place!.name, category: place!.category, placeId: place!.id, description: null, address: null, rating: null, url: null };
+    const nulls = { kind: null, description: null, address: null, rating: null, reviewCount: null, priceLevel: null, url: null };
+    const props = { name: place!.name, category: place!.category, placeId: place!.id, ...nulls };
 
     expect(validateEmitComponent({ component: { type: 'PlaceCard', props } })).toMatchObject({ ok: true });
   });

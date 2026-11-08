@@ -8,6 +8,11 @@ import { z } from 'zod';
 const IsoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Expected YYYY-MM-DD');
 const ClockTime = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Expected HH:MM, 24-hour');
 
+/** What a place is, for the card's badge; searchPlaces groups Google's many types into these. */
+export const PLACE_KINDS = ['museum', 'temple', 'nature', 'beach', 'viewpoint', 'food', 'cafe', 'nightlife', 'shopping', 'market', 'other'] as const;
+
+export type PlaceKind = (typeof PLACE_KINDS)[number];
+
 const PlaceCardData = z.strictObject({
   name: z.string().min(1),
   placeId: z
@@ -15,11 +20,14 @@ const PlaceCardData = z.strictObject({
     .min(1)
     .nullable()
     .describe('The id from searchPlaces, kept with the card; the card loads nothing itself'),
-  category: z.string().min(1).describe('Short kind of place, e.g. "Museum", "Café", "Viewpoint"'),
+  category: z.string().min(1).describe('Short kind of place, e.g. "Museum", "Café"; searchPlaces\' category when it came from there'),
+  kind: z.enum(PLACE_KINDS).nullable().describe('searchPlaces\' kind, copied as is; picks the badge icon; never invented'),
   description: z.string().nullable().describe('One or two sentences on why it is worth a visit'),
-  address: z.string().nullable(),
-  rating: z.number().min(0).max(5).nullable().describe('Average rating out of 5'),
-  url: z.url().nullable().describe('Official website or listing'),
+  address: z.string().nullable().describe('searchPlaces\' address, copied as is; never invented'),
+  rating: z.number().min(0).max(5).nullable().describe('searchPlaces\' average rating out of 5, copied as is; never invented'),
+  reviewCount: z.number().int().min(0).nullable().describe('searchPlaces\' reviewCount, copied as is; never invented'),
+  priceLevel: z.number().int().min(0).max(4).nullable().describe('searchPlaces\' priceLevel, 0 (free) to 4, copied as is; never invented'),
+  url: z.url().nullable().describe('searchPlaces\' url, copied as is; never invented'),
 });
 
 const WeatherCondition = z.enum(['sunny', 'partly-cloudy', 'cloudy', 'rain', 'storm', 'snow', 'fog']);
@@ -120,7 +128,7 @@ const ConnectionListData = z.strictObject({
 export const components = {
   PlaceCard: {
     props: PlaceCardData,
-    description: 'A single place to visit, eat or drink, with its category; it shows only the props it is given.',
+    description: 'A single place to visit, eat or drink, with its kind, rating, reviews and price level from searchPlaces; it shows only the props it is given.',
   },
   WeatherStrip: {
     props: WeatherStripData,

@@ -8,10 +8,13 @@ export const validInputs = {
       props: {
         name: 'Time Out Market',
         category: 'Food hall',
+        kind: 'food',
         placeId: null,
         description: 'Dozens of Lisbon kitchens under one roof.',
         address: 'Av. 24 de Julho 49, Lisbon',
         rating: 4.4,
+        reviewCount: 21345,
+        priceLevel: 2,
         url: 'https://www.timeoutmarket.com/lisboa/',
       },
     },

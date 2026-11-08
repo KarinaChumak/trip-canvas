@@ -57,6 +57,16 @@ describe('validateEmitComponent', () => {
     expect(validateEmitComponent({ component: { type: 'PlaceCard', props: rest } }).ok).toBe(false);
     expect(validateEmitComponent({ component: { type: 'PlaceCard', props: { ...rest, description: null, extra: 1 } } }).ok).toBe(false);
   });
+
+  it.each([
+    ['an unknown kind', { kind: 'castle' }],
+    ['a price level above 4', { priceLevel: 5 }],
+    ['a fractional review count', { reviewCount: 12.5 }],
+    ['a negative review count', { reviewCount: -1 }],
+  ])('rejects a PlaceCard with %s', (_name, change) => {
+    const props = { ...validInputs.PlaceCard.component.props, ...change };
+    expect(validateEmitComponent({ component: { type: 'PlaceCard', props } }).ok).toBe(false);
+  });
 });
 
 describe('validateSpec', () => {
