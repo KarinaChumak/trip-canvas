@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import type { PlaceCardData } from 'catalog';
+import type { PlaceCardData } from '@trip-canvas/catalog';
 import { PlaceCard } from '@/components/catalog/PlaceCard';
 
 const CUNHA: PlaceCardData = {

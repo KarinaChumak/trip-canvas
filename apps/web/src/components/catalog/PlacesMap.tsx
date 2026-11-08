@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { LngLatBounds, Map as MapLibreMap, Marker, Popup, setWorkerUrl } from 'maplibre-gl';
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import type { MapViewData } from 'catalog';
+import type { MapViewData } from '@trip-canvas/catalog';
 
 // MapLibre looks for its worker next to its own file, which Vite's bundling moves;
 // `?url` makes Vite serve and emit the worker, so point MapLibre at it.

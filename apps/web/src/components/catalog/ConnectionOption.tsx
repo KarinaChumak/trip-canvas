@@ -9,7 +9,7 @@ import {
   TramFrontIcon,
   type LucideIcon,
 } from 'lucide-react';
-import type { ConnectionOptionData } from 'catalog';
+import type { ConnectionOptionData } from '@trip-canvas/catalog';
 import { Badge } from '@/components/shadcn/badge';
 import { Button } from '@/components/shadcn/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/shadcn/collapsible';

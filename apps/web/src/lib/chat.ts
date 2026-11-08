@@ -1,5 +1,5 @@
 import type { UIDataTypes, UIMessage } from 'ai';
-import type { EMIT_COMPONENT_TOOL, EmitComponentInput, EmitComponentOutput } from 'catalog/schema';
+import type { EMIT_COMPONENT_TOOL, EmitComponentInput, EmitComponentOutput } from '@trip-canvas/catalog/schema';
 
 /** The server's tools as the chat sees them, so tool parts are typed. */
 export type ChatTools = {

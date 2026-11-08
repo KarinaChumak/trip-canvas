@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { components } from '../catalog.js';
-import { buildCatalogPrompt } from '../prompt.js';
+import { components } from '../src/catalog.js';
+import { buildCatalogPrompt } from '../src/prompt.js';
 
 describe('buildCatalogPrompt', () => {
   it('lists every component with its description', () => {

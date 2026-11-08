@@ -20,8 +20,8 @@ pnpm --filter server add hono @hono/node-server ai @ai-sdk/anthropic zod lru-cac
 pnpm --filter server add -D tsx typescript @types/node esbuild
 
 # catalog
-pnpm --filter catalog add @json-render/core zod
-pnpm --filter catalog add -D typescript
+pnpm --filter @trip-canvas/catalog add @json-render/core zod
+pnpm --filter @trip-canvas/catalog add -D typescript
 
 # tests
 pnpm add -D -w vitest typescript

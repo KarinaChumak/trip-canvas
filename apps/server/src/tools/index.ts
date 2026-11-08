@@ -1,4 +1,4 @@
-import { EMIT_COMPONENT_TOOL } from 'catalog/schema';
+import { EMIT_COMPONENT_TOOL } from '@trip-canvas/catalog/schema';
 import type { Services } from '../services/index.js';
 import { emitComponent } from './emit-component.js';
 import { createFindConnectionsTool } from './find-connections.js';

@@ -1,22 +1,22 @@
 {
-  "name": "catalog",
+  "name": "@trip-canvas/catalog",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./catalog.ts",
-    "./schema": "./schema.ts",
-    "./prompt": "./prompt.ts"
+    ".": "./src/catalog.ts",
+    "./schema": "./src/schema.ts",
+    "./prompt": "./src/prompt.ts"
   },
   "scripts": {
     "typecheck": "tsc -p ."
   },
   "dependencies": {
-    "@json-render/core": "^0.21.4",
-    "@json-render/react": "^0.21.4",
-    "zod": "^4.6.7"
+    "@json-render/core": "catalog:",
+    "@json-render/react": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
-    "typescript": "^7.0.2"
+    "typescript": "catalog:"
   }
 }

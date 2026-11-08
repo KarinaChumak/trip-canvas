@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { validateEmitComponent } from 'catalog/schema';
+import { validateEmitComponent } from '@trip-canvas/catalog/schema';
 import { memoryCache } from '../../src/lib/cache.js';
 import { conditionFor, createOpenMeteoClient, type ForecastRequest } from '../../src/services/open-meteo.js';
 

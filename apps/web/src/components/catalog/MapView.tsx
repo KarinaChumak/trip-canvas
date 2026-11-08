@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import type { MapViewData } from 'catalog';
+import type { MapViewData } from '@trip-canvas/catalog';
 import { Button } from '@/components/shadcn/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/shadcn/card';
 import { Skeleton } from '@/components/shadcn/skeleton';

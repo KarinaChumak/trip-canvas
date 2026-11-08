@@ -11,7 +11,7 @@ import {
   UtensilsIcon,
   type LucideIcon,
 } from 'lucide-react';
-import type { DayItineraryData } from 'catalog';
+import type { DayItineraryData } from '@trip-canvas/catalog';
 import { Badge } from '@/components/shadcn/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/shadcn/card';
 import {

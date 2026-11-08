@@ -1,5 +1,5 @@
 import { defineRegistry } from '@json-render/react';
-import { catalog } from 'catalog';
+import { catalog } from '@trip-canvas/catalog';
 import { ConnectionList } from '@/components/catalog/ConnectionList';
 import { DayItinerary } from '@/components/catalog/DayItinerary';
 import { MapView } from '@/components/catalog/MapView';

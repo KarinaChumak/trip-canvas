@@ -1,4 +1,4 @@
-import type { EmitComponentInput } from '../schema.js';
+import type { EmitComponentInput } from '../src/schema.js';
 
 /** A valid `emit_component` input per component, shared by the catalog tests. */
 export const validInputs = {

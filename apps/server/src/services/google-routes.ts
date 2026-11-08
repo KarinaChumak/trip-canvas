@@ -1,4 +1,4 @@
-import type { ConnectionOptionData } from 'catalog';
+import type { ConnectionOptionData } from '@trip-canvas/catalog';
 import { z } from 'zod';
 import { createApiClient } from '../lib/api-client.js';
 

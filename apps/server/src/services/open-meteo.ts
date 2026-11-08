@@ -1,4 +1,4 @@
-import type { WeatherStripData } from 'catalog';
+import type { WeatherStripData } from '@trip-canvas/catalog';
 import { z } from 'zod';
 import { createApiClient } from '../lib/api-client.js';
 import type { Cache } from '../lib/cache.js';

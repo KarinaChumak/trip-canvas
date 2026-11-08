@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { simulateReadableStream, type StepResult } from 'ai';
 import { MockLanguageModelV4 } from 'ai/test';
-import { EMIT_COMPONENT_TOOL } from 'catalog/schema';
+import { EMIT_COMPONENT_TOOL } from '@trip-canvas/catalog/schema';
 import { activeToolsFor, MAX_INVALID_COMPONENTS, streamAgent } from '../../src/lib/agent.js';
 import { memoryCache } from '../../src/lib/cache.js';
 import { createServices } from '../../src/services/index.js';
