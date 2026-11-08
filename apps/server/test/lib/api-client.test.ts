@@ -88,6 +88,26 @@ describe('createApiClient', () => {
     expect(await client({ cache: broken }).getJson(new URL('https://api.test/x'), Ok)).toEqual({ ok: 1 });
   });
 
+  it('caches a POST by path and body, whatever the order of its fields', async () => {
+    const fetch = stubFetch({ ok: 1 });
+    const api = client();
+    const url = new URL('https://api.test/search');
+
+    expect(await api.postJson(url, { a: 1, b: { c: 2, d: 3 } }, Ok)).toEqual({ ok: 1 });
+    expect(await api.postJson(url, { b: { d: 3, c: 2 }, a: 1 }, Ok)).toEqual({ ok: 1 });
+    expect(fetch).toHaveBeenCalledTimes(1);
+    await api.postJson(url, { a: 2 }, Ok);
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('never caches a POST when the client has no cache', async () => {
+    const fetch = stubFetch({ ok: 1 });
+    const api = createApiClient({ service: 'Test' });
+    await api.postJson(new URL('https://api.test/search'), { a: 1 }, Ok);
+    await api.postJson(new URL('https://api.test/search'), { a: 1 }, Ok);
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
   it('shares one request between parallel calls for the same URL', async () => {
     const fetch = stubFetch({ ok: 1 });
     const api = client();

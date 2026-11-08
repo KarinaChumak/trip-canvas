@@ -12,6 +12,8 @@ const EnvSchema = z
     NOMINATIM_USER_AGENT: z.string().trim().min(1).default('trip-canvas-demo'),
     // Google Maps Platform key with the Routes API enabled, for findConnections.
     GOOGLE_MAPS_API_KEY: z.string({ error: 'is required' }).trim().min(1, 'is required'),
+    // Ignav fare search (D-046), for searchFlights.
+    IGNAV_API_KEY: z.string({ error: 'is required' }).trim().min(1, 'is required'),
     // Cache store. Unset locally: an in-memory cache. Vercel's Upstash integration
     // may inject the KV_* names instead, as @upstash/redis also accepts.
     UPSTASH_REDIS_REST_URL: z.url().optional(),
