@@ -48,7 +48,7 @@ export function ConnectionOption({ connection, recommended, showDate }: Connecti
   return (
     <Collapsible asChild>
       <Item variant={recommended ? 'outline' : 'muted'} size="sm">
-        <ItemMedia variant="icon" className="size-8 rounded-md bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300">
+        <ItemMedia variant="icon" className="size-8 rounded-md bg-kind-transport text-kind-transport-foreground">
           <Icon aria-label={connection.segments[0]?.mode} />
         </ItemMedia>
         <ItemContent>

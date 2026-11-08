@@ -26,13 +26,13 @@ type ConditionStyle = {
 };
 
 const CONDITION_STYLES: Record<Condition, ConditionStyle> = {
-  sunny: { icon: SunIcon, tint: 'bg-amber-100 text-amber-700 dark:bg-amber-400/15 dark:text-amber-300' },
-  'partly-cloudy': { icon: CloudSunIcon, tint: 'bg-orange-50 text-amber-600 dark:bg-orange-950 dark:text-amber-300' },
-  cloudy: { icon: CloudIcon, tint: 'bg-stone-200 text-stone-600 dark:bg-stone-800 dark:text-stone-300' },
-  rain: { icon: CloudRainIcon, tint: 'bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300' },
-  storm: { icon: CloudLightningIcon, tint: 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300' },
-  snow: { icon: SnowflakeIcon, tint: 'bg-slate-100 text-sky-600 dark:bg-slate-800 dark:text-sky-300' },
-  fog: { icon: CloudFogIcon, tint: 'bg-stone-100 text-stone-500 dark:bg-stone-800 dark:text-stone-400' },
+  sunny: { icon: SunIcon, tint: 'bg-weather-sunny text-weather-sunny-foreground' },
+  'partly-cloudy': { icon: CloudSunIcon, tint: 'bg-weather-partly-cloudy text-weather-partly-cloudy-foreground' },
+  cloudy: { icon: CloudIcon, tint: 'bg-weather-cloudy text-weather-cloudy-foreground' },
+  rain: { icon: CloudRainIcon, tint: 'bg-weather-rain text-weather-rain-foreground' },
+  storm: { icon: CloudLightningIcon, tint: 'bg-weather-storm text-weather-storm-foreground' },
+  snow: { icon: SnowflakeIcon, tint: 'bg-weather-snow text-weather-snow-foreground' },
+  fog: { icon: CloudFogIcon, tint: 'bg-weather-fog text-weather-fog-foreground' },
 };
 
 type WeatherStripProps = {
@@ -71,7 +71,7 @@ export function WeatherStrip({ forecast }: WeatherStripProps) {
                   </ItemDescription>
                   {day.precipitationChance !== null && (
                     <ItemDescription className="flex items-center gap-1">
-                      <DropletIcon className="size-3 text-sky-600 dark:text-sky-400" aria-hidden />
+                      <DropletIcon className="size-3 text-weather-rain-foreground" aria-hidden />
                       {day.precipitationChance}% rain
                     </ItemDescription>
                   )}
