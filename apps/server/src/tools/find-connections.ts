@@ -14,7 +14,8 @@ export const FindConnectionsInput = z.object({
 /** Real train, bus and ferry connections from Google Maps. Never cached (D-043). */
 export function createFindConnectionsTool({ googleRoutes }: Pick<Services, 'googleRoutes'>) {
   return tool({
-    description: 'Find real train, bus or ferry connections between two places at a date and time.',
+    description:
+      'Find real train, bus or ferry connections between two places at a date and time. Show them in one ConnectionList per direction, copied as is.',
     inputSchema: FindConnectionsInput,
     execute: async (search, { abortSignal }) => {
       const connections = await googleRoutes.findConnections(search, abortSignal);

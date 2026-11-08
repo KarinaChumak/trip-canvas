@@ -1,31 +1,11 @@
+import type { ConnectionOptionData } from 'catalog';
 import { z } from 'zod';
 import { createApiClient } from '../lib/api-client.js';
 
-export type TransitMode = 'train' | 'metro' | 'tram' | 'bus' | 'ferry' | 'other';
+/** One way to make the trip, as a ConnectionList shows it: segments in order, one means direct. */
+export type Connection = ConnectionOptionData;
 
-/** One ride in one vehicle. Times are local, HH:MM. */
-export type Segment = {
-  mode: TransitMode;
-  line: string | null;
-  from: string;
-  to: string;
-  departureTime: string;
-  arrivalTime: string;
-  headsign: string | null;
-};
-
-/** One way to make the trip: its segments in order; one segment means direct. */
-export type Connection = {
-  from: string;
-  to: string;
-  /** Local YYYY-MM-DD and HH:MM at the start and the end. */
-  departureDate: string;
-  departureTime: string;
-  arrivalDate: string;
-  arrivalTime: string;
-  durationMinutes: number;
-  segments: Segment[];
-};
+type TransitMode = Connection['segments'][number]['mode'];
 
 export type ConnectionSearch = {
   /** Place names; Google geocodes them itself. */

@@ -78,6 +78,44 @@ const MapViewData = z.strictObject({
     .describe('Coordinates copied from geocode or searchPlaces results, never guessed'),
 });
 
+const TransitMode = z.enum(['train', 'metro', 'tram', 'bus', 'ferry', 'other']);
+
+const ConnectionOptionData = z.strictObject({
+  from: z.string().min(1).describe('Station or stop the trip starts at'),
+  to: z.string().min(1),
+  departureDate: IsoDate.describe('Local date at the start'),
+  departureTime: ClockTime.describe('Local time at the start'),
+  arrivalDate: IsoDate.describe('Local date at the end; later than departureDate overnight'),
+  arrivalTime: ClockTime.describe('Local time at the end'),
+  durationMinutes: z.number().int().positive(),
+  segments: z
+    .array(
+      z.strictObject({
+        mode: TransitMode,
+        line: z.string().min(1).nullable().describe('e.g. "ICE 1003", "7 (Special Express)"'),
+        from: z.string().min(1),
+        to: z.string().min(1),
+        departureTime: ClockTime,
+        arrivalTime: ClockTime,
+        headsign: z.string().min(1).nullable().describe('Where the vehicle is heading'),
+      }),
+    )
+    .min(1)
+    .max(8)
+    .describe('One segment per vehicle, in order; one segment means a direct connection'),
+});
+
+const ConnectionListData = z.strictObject({
+  title: z.string().min(1).describe('The direction without the date, which the card shows: e.g. "Outbound: Nuremberg → Berlin"'),
+  options: z.array(ConnectionOptionData).min(1).max(10).describe("findConnections' connections, copied as is"),
+  recommendedIndex: z
+    .number()
+    .int()
+    .min(0)
+    .nullable()
+    .describe('Index in options of the one that fits the request best; it is shown first. null for no preference'),
+});
+
 /** Catalog components: Zod props plus the one-line description the model sees. */
 export const components = {
   PlaceCard: {
@@ -96,6 +134,10 @@ export const components = {
     props: MapViewData,
     description: 'A map with a pin per place, for places whose coordinates came from a tool.',
   },
+  ConnectionList: {
+    props: ConnectionListData,
+    description: 'Train, bus or ferry connections for one direction from findConnections; one list per direction.',
+  },
 } as const;
 
 export type ComponentName = keyof typeof components;
@@ -104,6 +146,8 @@ export type PlaceCardData = z.infer<typeof PlaceCardData>;
 export type WeatherStripData = z.infer<typeof WeatherStripData>;
 export type DayItineraryData = z.infer<typeof DayItineraryData>;
 export type MapViewData = z.infer<typeof MapViewData>;
+export type ConnectionOptionData = z.infer<typeof ConnectionOptionData>;
+export type ConnectionListData = z.infer<typeof ConnectionListData>;
 
 /** The json-render catalog shared by the server (validation) and the web app (registry). */
 export const catalog = defineCatalog(schema, { components, actions: {} });

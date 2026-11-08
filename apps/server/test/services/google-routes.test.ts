@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { validateEmitComponent } from 'catalog/schema';
 import { createGoogleRoutesClient, localDateTime, modeFor, type ConnectionSearch } from '../../src/services/google-routes.js';
 import bangkok from '../fixtures/google-routes-bangkok-chiang-mai.json' with { type: 'json' };
 import berlin from '../fixtures/google-routes-berlin-munich.json' with { type: 'json' };
@@ -46,7 +47,7 @@ describe('googleRoutes.findConnections', () => {
     expect(connections[5]?.departureDate).toBe('2026-12-11');
   });
 
-  it('keeps a change as two segments', async () => {
+  it('keeps a change as two segments and returns options a ConnectionList accepts', async () => {
     stubFetch(berlin);
     const connections = await googleRoutes().findConnections(BERLIN);
 
@@ -56,6 +57,8 @@ describe('googleRoutes.findConnections', () => {
       ['ICE 785', 'Fulda', 'Munich Central Station', '10:56', '14:05'],
     ]);
     expect(connections[0]?.segments[0]?.line).toBe('ICE 1003');
+    const list = { title: 'Berlin → Munich', recommendedIndex: 0, options: connections };
+    expect(validateEmitComponent({ component: { type: 'ConnectionList', props: list } })).toMatchObject({ ok: true });
   });
 
   it('POSTs the search with the key and field mask in headers', async () => {
