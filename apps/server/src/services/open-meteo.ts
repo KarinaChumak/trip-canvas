@@ -55,7 +55,7 @@ const OpenMeteoResponse = z.object({
 
 export function createOpenMeteoClient({ cache }: { cache: Cache }): OpenMeteoClient {
   // Forecasts change during the day, so keep them for half an hour.
-  const api = createApiClient({ service: 'Open-Meteo', cache, ttlSeconds: 30 * 60 });
+  const api = createApiClient({ service: 'Open-Meteo', cache: { store: cache, ttlSeconds: 30 * 60 } });
 
   return {
     async getWeather({ location, latitude, longitude, days, unit }, signal) {

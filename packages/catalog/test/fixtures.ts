@@ -52,4 +52,28 @@ export const validInputs = {
       },
     },
   },
+  ConnectionList: {
+    component: {
+      type: 'ConnectionList',
+      props: {
+        title: 'Berlin → Munich',
+        recommendedIndex: 0,
+        options: [
+          {
+            from: 'Berlin Hauptbahnhof',
+            to: 'Munich Central Station',
+            departureDate: '2026-11-13',
+            departureTime: '07:27',
+            arrivalDate: '2026-11-13',
+            arrivalTime: '14:05',
+            durationMinutes: 398,
+            segments: [
+              { mode: 'train', line: 'ICE 595', from: 'Berlin Hauptbahnhof', to: 'Fulda', departureTime: '07:27', arrivalTime: '10:47', headsign: null },
+              { mode: 'train', line: 'ICE 785', from: 'Fulda', to: 'Munich Central Station', departureTime: '10:56', arrivalTime: '14:05', headsign: 'München Hbf' },
+            ],
+          },
+        ],
+      },
+    },
+  },
 } satisfies Record<string, EmitComponentInput>;

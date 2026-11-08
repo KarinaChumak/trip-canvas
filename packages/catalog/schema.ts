@@ -25,6 +25,7 @@ export const EmitComponentInput = z.strictObject({
     variant('WeatherStrip'),
     variant('DayItinerary'),
     variant('MapView'),
+    variant('ConnectionList'),
   ]),
 });
 
