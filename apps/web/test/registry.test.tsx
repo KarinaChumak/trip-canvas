@@ -29,6 +29,8 @@ describe('registry', () => {
           reviewCount: 21345,
           priceLevel: 2,
           url: 'https://www.timeoutmarket.com/lisboa/',
+          hours: null,
+          utcOffsetMinutes: null,
         },
       },
     });
@@ -42,7 +44,7 @@ describe('registry', () => {
     const html = render({
       component: {
         type: 'PlaceCard',
-        props: { name: 'MAAT', category: 'Museum', kind: 'museum', placeId: null, description: null, address: null, rating: null, reviewCount: null, priceLevel: null, url: null },
+        props: { name: 'MAAT', category: 'Museum', kind: 'museum', placeId: null, description: null, address: null, rating: null, reviewCount: null, priceLevel: null, url: null, hours: null, utcOffsetMinutes: null },
       },
     });
     expect(html).toContain('MAAT');
@@ -55,7 +57,7 @@ describe('registry', () => {
     const html = render({
       component: {
         type: 'PlaceCard',
-        props: { name: 'MAAT', category: 'Museum', kind: 'museum', placeId: null, description: null, address: null, rating: null, reviewCount: null, priceLevel: null, url: null },
+        props: { name: 'MAAT', category: 'Museum', kind: 'museum', placeId: null, description: null, address: null, rating: null, reviewCount: null, priceLevel: null, url: null, hours: null, utcOffsetMinutes: null },
       },
     });
     expect(html).toContain('Google Maps');

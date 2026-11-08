@@ -3,6 +3,9 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import type { PlaceCardData } from '@trip-canvas/catalog';
 import { PlaceCard } from '@/components/catalog/PlaceCard';
 
+/** The same hours on all 7 days. */
+const everyDay = (day: string): NonNullable<PlaceCardData['hours']> => [day, day, day, day, day, day, day];
+
 const CUNHA: PlaceCardData = {
   name: 'Cunha',
   category: 'Café',
@@ -14,9 +17,15 @@ const CUNHA: PlaceCardData = {
   reviewCount: null,
   priceLevel: null,
   url: null,
+  hours: null,
+  utcOffsetMinutes: null,
 };
 
-const render = (place: PlaceCardData) => renderToStaticMarkup(<PlaceCard place={place} />);
+// Lisbon is on UTC+0 in winter; 13 Nov 2026 is a Friday.
+const FRIDAY_NOON = new Date('2026-11-13T12:00:00Z');
+const LUNCH_AND_DINNER = everyDay('11:00-14:00,17:00-22:00');
+
+const render = (place: PlaceCardData, now = FRIDAY_NOON) => renderToStaticMarkup(<PlaceCard place={place} now={now} />);
 
 describe('PlaceCard', () => {
   it('renders the fields searchPlaces returned', () => {
@@ -46,6 +55,32 @@ describe('PlaceCard', () => {
   it('leaves out rating and price when they are unknown', () => {
     const html = render({ ...CUNHA, rating: null });
     for (const text of ['Rated', '$']) expect(html).not.toContain(text);
+  });
+
+  it("shows open now with today's hours", () => {
+    const html = render({ ...CUNHA, hours: LUNCH_AND_DINNER, utcOffsetMinutes: 0 });
+    expect(html).toContain('Open now');
+    expect(html).toContain('Today 11:00–14:00, 17:00–22:00');
+  });
+
+  it('shows closed between ranges, and on a day with no hours', () => {
+    expect(render({ ...CUNHA, hours: LUNCH_AND_DINNER, utcOffsetMinutes: 0 }, new Date('2026-11-13T15:00:00Z'))).toContain('Closed');
+    const html = render({ ...CUNHA, hours: [null, '09:00-17:00', '09:00-17:00', '09:00-17:00', '09:00-17:00', null, null], utcOffsetMinutes: 0 });
+    expect(html).toContain('Closed');
+    expect(html).toContain('Closed today');
+  });
+
+  it('shows open 24 hours as such', () => {
+    const html = render({ ...CUNHA, hours: everyDay('00:00-24:00'), utcOffsetMinutes: 0 });
+    expect(html).toContain('Open now');
+    expect(html).toContain('Open 24 hours');
+  });
+
+  it('shows no opening state without hours or an offset', () => {
+    for (const place of [CUNHA, { ...CUNHA, hours: LUNCH_AND_DINNER }]) {
+      const html = render(place);
+      for (const text of ['Open now', 'Closed', 'Today']) expect(html).not.toContain(text);
+    }
   });
 
   it('labels the kind badge with the category, and falls back to other without a kind', () => {

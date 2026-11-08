@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { validateEmitComponent } from '@trip-canvas/catalog/schema';
-import { categoryFor, createGooglePlacesClient, kindFor, priceLevelFor, type PlaceSearch } from '../../src/services/google-places.js';
+import { categoryFor, createGooglePlacesClient, hoursFor, kindFor, priceLevelFor, type PlaceSearch } from '../../src/services/google-places.js';
 // Hand-made in the shape of a Text Search answer with our field mask: the dev key is
 // not enabled for the Places API yet, so no live response could be recorded.
 import yaowarat from '../fixtures/google-places-yaowarat-street-food.json' with { type: 'json' };
@@ -31,7 +31,7 @@ describe('googlePlaces.searchPlaces', () => {
     expect(init.headers).toMatchObject({
       'X-Goog-Api-Key': 'test-key',
       'X-Goog-FieldMask':
-        'places.id,places.displayName,places.primaryType,places.types,places.location,places.formattedAddress,places.rating,places.userRatingCount,places.priceLevel,places.websiteUri',
+        'places.id,places.displayName,places.primaryType,places.types,places.location,places.formattedAddress,places.rating,places.userRatingCount,places.priceLevel,places.websiteUri,places.regularOpeningHours.periods,places.utcOffsetMinutes',
     });
     expect(JSON.parse(String(init.body))).toEqual({
       textQuery: 'street food',
@@ -49,6 +49,8 @@ describe('googlePlaces.searchPlaces', () => {
       ...{ id: 'ChIJq6qq6lmZ4jARSBYHgbzL0pE', name: 'Jay Fai', category: 'Thai restaurant', kind: 'food', latitude: 13.7397361, longitude: 100.5101943 },
       ...{ address: '327 Maha Chai Rd, Samran Rat, Phra Nakhon, Bangkok 10200, Thailand', rating: 4.4, reviewCount: 6214, priceLevel: 1 },
       url: 'https://www.facebook.com/jayfaibangkok/',
+      hours: [null, null, null, '09:00-14:00,15:00-19:30', '09:00-14:00,15:00-19:30', '09:00-14:00,15:00-19:30', '09:00-14:00,15:00-19:30'],
+      utcOffsetMinutes: 420,
     });
     expect(places.map((p) => [p.name, p.category, p.kind, p.priceLevel])).toEqual([
       ['Jay Fai', 'Thai restaurant', 'food', 1],
@@ -57,7 +59,7 @@ describe('googlePlaces.searchPlaces', () => {
       ['Kia Gee Kao Tom Mu', 'Place', 'cafe', null],
       ['Wat Traimit', 'Buddhist temple', 'temple', 0],
     ]);
-    expect(places[3]).toMatchObject({ address: null, rating: null, reviewCount: null, url: null });
+    expect(places[3]).toMatchObject({ address: null, rating: null, reviewCount: null, url: null, hours: null, utcOffsetMinutes: null });
   });
 
   it('gives places whose fields a PlaceCard takes as they are', async () => {
@@ -77,6 +79,32 @@ describe('googlePlaces.searchPlaces', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
     stubFetch({ error: { code: 403, status: 'PERMISSION_DENIED' } }, 403);
     await expect(googlePlaces().searchPlaces(SEARCH)).rejects.toThrow(/Google Places returned 403/);
+  });
+});
+
+describe('hoursFor', () => {
+  const at = (day: number, hour: number, minute = 0) => ({ day, hour, minute });
+
+  it('keeps a period past midnight on the day it opens, and ends one at midnight at 24:00', async () => {
+    stubFetch(yaowarat);
+    const [, market] = await googlePlaces().searchPlaces(SEARCH);
+    expect(market!.hours).toEqual([...Array<string>(6).fill('18:00-02:00'), '18:00-24:00']);
+  });
+
+  it('reads a single period with no close as open 24 hours every day', async () => {
+    stubFetch(yaowarat);
+    const [, , dessertShop] = await googlePlaces().searchPlaces(SEARCH);
+    expect(dessertShop!.hours).toEqual(Array<string>(7).fill('00:00-24:00'));
+  });
+
+  it('joins several periods a day in order and leaves closed days null', () => {
+    const periods = [{ open: at(1, 17), close: at(1, 22) }, { open: at(1, 11, 30), close: at(1, 14) }];
+    expect(hoursFor(periods)).toEqual([null, '11:30-14:00,17:00-22:00', null, null, null, null, null]);
+  });
+
+  it('gives null without periods', () => {
+    expect(hoursFor(undefined)).toBeNull();
+    expect(hoursFor([])).toBeNull();
   });
 });
 

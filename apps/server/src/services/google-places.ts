@@ -25,6 +25,10 @@ export type FoundPlace = {
   reviewCount: number | null;
   priceLevel: number | null;
   url: string | null;
+  /** Indexed Sunday=0: "HH:MM-HH:MM" ranges joined by commas, null when closed; null when Google has no hours. */
+  hours: (string | null)[] | null;
+  /** The place's offset from UTC at search time, to tell "open now" in its own time. */
+  utcOffsetMinutes: number | null;
 };
 
 export type GooglePlacesClient = {
@@ -36,7 +40,12 @@ type GooglePlacesClientDeps = { apiKey: string };
 
 // The mask sets the price: the rating makes this one Enterprise Text Search (1,000 free
 // a month), and every field the card shows comes with it, so no card needs a second call.
-const SEARCH_FIELD_MASK = 'places.id,places.displayName,places.primaryType,places.types,places.location,places.formattedAddress,places.rating,places.userRatingCount,places.priceLevel,places.websiteUri';
+const SEARCH_FIELD_MASK = 'places.id,places.displayName,places.primaryType,places.types,places.location,places.formattedAddress,places.rating,places.userRatingCount,places.priceLevel,places.websiteUri,places.regularOpeningHours.periods,places.utcOffsetMinutes';
+
+// Proto JSON may leave out zero values, so midnight on Sunday can arrive as {}.
+const PeriodPoint = z.object({ day: z.number().int().min(0).max(6).default(0), hour: z.number().default(0), minute: z.number().default(0) });
+const Period = z.object({ open: PeriodPoint, close: PeriodPoint.optional() });
+type Period = z.infer<typeof Period>;
 
 const SearchResponse = z.object({
   // Google answers {} when it finds nothing.
@@ -53,6 +62,8 @@ const SearchResponse = z.object({
         userRatingCount: z.number().optional(),
         priceLevel: z.string().optional(),
         websiteUri: z.string().optional(),
+        regularOpeningHours: z.object({ periods: z.array(Period).default([]) }).optional(),
+        utcOffsetMinutes: z.number().optional(),
       }),
     )
     .default([]),
@@ -64,6 +75,27 @@ const PRICE_LEVELS = ['FREE', 'INEXPENSIVE', 'MODERATE', 'EXPENSIVE', 'VERY_EXPE
 export function priceLevelFor(level: string | undefined): number | null {
   const index = PRICE_LEVELS.indexOf(level ?? '');
   return index === -1 ? null : index;
+}
+
+const clock = (hour: number, minute: number) => `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+
+/**
+ * Google's periods as 7 days, Sunday=0: e.g. "11:00-14:00,17:00-22:00", or null when
+ * closed. A period past midnight stays on the day it opens ("18:00-02:00"); one with no
+ * close is open around the clock. No periods at all means the hours are unknown: null.
+ */
+export function hoursFor(periods: Period[] | undefined): (string | null)[] | null {
+  if (!periods?.length) return null;
+  if (periods.some((period) => !period.close)) return Array<string>(7).fill('00:00-24:00');
+
+  const days: string[][] = Array.from({ length: 7 }, () => []);
+  for (const { open, close } of [...periods].sort((a, b) => a.open.hour * 60 + a.open.minute - (b.open.hour * 60 + b.open.minute))) {
+    if (!close) continue;
+    // Closing at midnight the next day reads better as the end of this one.
+    const end = close.day !== open.day && close.hour === 0 && close.minute === 0 ? '24:00' : clock(close.hour, close.minute);
+    days[open.day]!.push(`${clock(open.hour, open.minute)}-${end}`);
+  }
+  return days.map((ranges) => (ranges.length ? ranges.join(',') : null));
 }
 
 /** Google's place types (https://developers.google.com/maps/documentation/places/web-service/place-types) by kind. */
@@ -135,6 +167,8 @@ export function createGooglePlacesClient({ apiKey }: GooglePlacesClientDeps): Go
           reviewCount: place.userRatingCount ?? null,
           priceLevel: priceLevelFor(place.priceLevel),
           url: place.websiteUri ?? null,
+          hours: hoursFor(place.regularOpeningHours?.periods),
+          utcOffsetMinutes: place.utcOffsetMinutes ?? null,
         };
       });
     },

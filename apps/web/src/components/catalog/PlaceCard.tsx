@@ -1,7 +1,9 @@
-import { ExternalLinkIcon, MapPinIcon, StarIcon } from 'lucide-react';
+import { ClockIcon, ExternalLinkIcon, MapPinIcon, StarIcon } from 'lucide-react';
+import { useState } from 'react';
 import type { PlaceCardData } from '@trip-canvas/catalog';
 import { Badge } from '@/components/shadcn/badge';
 import { Button } from '@/components/shadcn/button';
+import { hoursToday, isOpenAt } from '@/lib/opening-hours';
 import { PlaceKindBadge } from './PlaceKindBadge';
 import { SourceCredit } from './SourceCredit';
 import {
@@ -19,10 +21,24 @@ const PRICE_LABELS = ['Free', 'Inexpensive', 'Moderate price', 'Expensive', 'Ver
 
 type PlaceCardProps = {
   place: PlaceCardData;
+  /** The moment "open now" is worked out for; the time the card mounted when left out. */
+  now?: Date;
 };
 
+/** "11:00-14:00,17:00-22:00" → "Today 11:00–14:00, 17:00–22:00"; null → "Closed today". */
+function formatToday(day: string | null): string {
+  if (day === null) return 'Closed today';
+  return day === '00:00-24:00' ? 'Open 24 hours' : `Today ${day.replaceAll('-', '–').replaceAll(',', ', ')}`;
+}
+
 /** Renders only what the agent sent: searchPlaces already returned every field it shows. */
-export function PlaceCard({ place }: PlaceCardProps) {
+export function PlaceCard({ place, now }: PlaceCardProps) {
+  // Read once, so the badge doesn't change while the card is on screen.
+  const [mountedAt] = useState(() => new Date());
+  const at = now ?? mountedAt;
+  const open = isOpenAt(place.hours, place.utcOffsetMinutes, at);
+  const today = hoursToday(place.hours, place.utcOffsetMinutes, at);
+
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
@@ -59,6 +75,21 @@ export function PlaceCard({ place }: PlaceCardProps) {
           <Badge variant="outline" aria-label={PRICE_LABELS[place.priceLevel]}>
             {place.priceLevel === 0 ? 'Free' : '$'.repeat(place.priceLevel)}
           </Badge>
+        )}
+        {open !== null && (
+          <Badge
+            className={
+              open
+                ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-400/15 dark:text-emerald-300'
+                : 'bg-rose-100 text-rose-800 dark:bg-rose-400/15 dark:text-rose-300'
+            }
+          >
+            <ClockIcon data-icon="inline-start" />
+            {open ? 'Open now' : 'Closed'}
+          </Badge>
+        )}
+        {open !== null && (
+          <span className="text-xs text-muted-foreground">{formatToday(today)}</span>
         )}
         {place.url && (
           <Button asChild size="sm" variant="link" className="ml-auto">

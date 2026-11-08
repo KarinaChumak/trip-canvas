@@ -13,6 +13,11 @@ export const PLACE_KINDS = ['museum', 'temple', 'nature', 'beach', 'viewpoint', 
 
 export type PlaceKind = (typeof PLACE_KINDS)[number];
 
+// "09:00-17:00", or several ranges: "11:00-14:00,17:00-22:00". An end before the start
+// runs past midnight ("18:00-02:00"); 24:00 is midnight at the end of the day.
+const HOURS_RANGE = '([01]\\d|2[0-3]):[0-5]\\d-(([01]\\d|2[0-3]):[0-5]\\d|24:00)';
+const DayHours = z.string().regex(new RegExp(`^${HOURS_RANGE}(,${HOURS_RANGE})*$`), 'Expected HH:MM-HH:MM ranges joined by commas').nullable();
+
 const PlaceCardData = z.strictObject({
   name: z.string().min(1),
   placeId: z
@@ -28,6 +33,11 @@ const PlaceCardData = z.strictObject({
   reviewCount: z.number().int().min(0).nullable().describe('searchPlaces\' reviewCount, copied as is; never invented'),
   priceLevel: z.number().int().min(0).max(4).nullable().describe('searchPlaces\' priceLevel, 0 (free) to 4, copied as is; never invented'),
   url: z.url().nullable().describe('searchPlaces\' url, copied as is; never invented'),
+  hours: z
+    .tuple([DayHours, DayHours, DayHours, DayHours, DayHours, DayHours, DayHours])
+    .nullable()
+    .describe('searchPlaces\' hours, copied as is: 7 days from Sunday, null on closed days; never invented'),
+  utcOffsetMinutes: z.number().int().min(-720).max(840).nullable().describe('searchPlaces\' utcOffsetMinutes, copied as is; never invented'),
 });
 
 const WeatherCondition = z.enum(['sunny', 'partly-cloudy', 'cloudy', 'rain', 'storm', 'snow', 'fog']);
@@ -128,7 +138,7 @@ const ConnectionListData = z.strictObject({
 export const components = {
   PlaceCard: {
     props: PlaceCardData,
-    description: 'A single place to visit, eat or drink, with its kind, rating, reviews and price level from searchPlaces; it shows only the props it is given.',
+    description: 'A single place to visit, eat or drink, with its kind, rating, reviews, price level and opening hours from searchPlaces; it shows only the props it is given.',
   },
   WeatherStrip: {
     props: WeatherStripData,

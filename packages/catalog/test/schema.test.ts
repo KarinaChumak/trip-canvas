@@ -63,6 +63,9 @@ describe('validateEmitComponent', () => {
     ['a price level above 4', { priceLevel: 5 }],
     ['a fractional review count', { reviewCount: 12.5 }],
     ['a negative review count', { reviewCount: -1 }],
+    ['hours for six days', { hours: Array(6).fill(null) }],
+    ['hours not as HH:MM-HH:MM', { hours: ['9-17', null, null, null, null, null, null] }],
+    ['hours starting at 24:00', { hours: ['24:00-02:00', null, null, null, null, null, null] }],
   ])('rejects a PlaceCard with %s', (_name, change) => {
     const props = { ...validInputs.PlaceCard.component.props, ...change };
     expect(validateEmitComponent({ component: { type: 'PlaceCard', props } }).ok).toBe(false);

@@ -16,6 +16,8 @@ export const validInputs = {
         reviewCount: 21345,
         priceLevel: 2,
         url: 'https://www.timeoutmarket.com/lisboa/',
+        hours: [null, '10:00-24:00', '10:00-24:00', '10:00-24:00', '10:00-01:00', '10:00-01:00', '11:00-15:00,18:00-01:00'],
+        utcOffsetMinutes: 0,
       },
     },
   },

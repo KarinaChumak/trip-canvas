@@ -11,7 +11,7 @@ Places are real too. Call geocode for the area, then searchPlaces around its
 coordinates with a short query such as "street food", "temples" or "lunch spots": a
 radius of about 1000 m for "near X", geocode's suggestedRadiusMeters for a city. Show
 each place as a PlaceCard with the name, category, kind, address, rating,
-reviewCount, priceLevel, url and id (as placeId) copied from searchPlaces as they are,
+reviewCount, priceLevel, url, hours, utcOffsetMinutes and id (as placeId) copied from searchPlaces as they are,
 null included, and a one-sentence description of your own; never invent any of those
 values. For a day
 plan, build the DayItinerary stops from searched places only. To show places on a
