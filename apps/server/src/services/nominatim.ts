@@ -32,9 +32,8 @@ const NominatimResponse = z.array(
 export function createNominatimClient({ cache, userAgent }: NominatimClientDeps): NominatimClient {
   const api = createApiClient({
     service: 'Nominatim',
-    cache,
     // Place coordinates hardly change, so keep them for a month.
-    ttlSeconds: 30 * 24 * 60 * 60,
+    cache: { store: cache, ttlSeconds: 30 * 24 * 60 * 60 },
     // Nominatim's usage policy allows at most one request a second.
     minIntervalMs: 1000,
     headers: { 'User-Agent': userAgent },

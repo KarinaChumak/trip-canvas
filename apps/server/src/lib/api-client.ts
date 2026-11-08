@@ -7,15 +7,17 @@ const DEFAULT_TIMEOUT_MS = 10_000;
 export type ApiClientOptions = {
   /** Name for logs and cache keys, e.g. "Nominatim". */
   service: string;
-  cache: Cache;
-  /** How long a response stays in the cache. */
-  ttlSeconds: number;
   timeoutMs?: number;
   /** Minimum gap between two calls to this service, for APIs with a rate limit. */
   minIntervalMs?: number;
   headers?: Record<string, string>;
   /** Query parameters left out of the cache key, such as API keys. */
   secretParams?: string[];
+  /**
+   * Where GET responses are kept and for how long. Left out for APIs whose terms
+   * forbid storing their answers (Google, D-043).
+   */
+  cache?: { store: Cache; ttlSeconds: number };
 };
 
 export type ApiClient = {
@@ -27,6 +29,11 @@ export type ApiClient = {
    * entry from before a schema change counts as a miss.
    */
   getJson<T>(url: URL, schema: z.ZodType<T>, signal?: AbortSignal): Promise<T>;
+  /**
+   * POSTs `body` as JSON and returns the answer parsed with `schema`. Never cached:
+   * it is for APIs whose terms forbid storing their answers (Google, D-043).
+   */
+  postJson<T>(url: URL, body: unknown, schema: z.ZodType<T>, signal?: AbortSignal): Promise<T>;
 };
 
 /**
@@ -54,7 +61,6 @@ export function createRequestQueue(minIntervalMs: number) {
 export function createApiClient({
   service,
   cache,
-  ttlSeconds,
   timeoutMs = DEFAULT_TIMEOUT_MS,
   minIntervalMs = 0,
   headers,
@@ -63,11 +69,15 @@ export function createApiClient({
   // Only rate-limited services wait in line; the others run their calls in parallel.
   const enqueue = minIntervalMs > 0 ? createRequestQueue(minIntervalMs) : <T>(task: () => Promise<T>) => task();
 
-  async function fetchJson(url: URL, signal?: AbortSignal): Promise<unknown> {
+  async function fetchJson(url: URL, signal?: AbortSignal, init?: RequestInit): Promise<unknown> {
     // Give up after the timeout, or as soon as the user stops the reply.
     const timeout = AbortSignal.timeout(timeoutMs);
     const started = Date.now();
-    const res = await fetch(url, { headers, signal: signal ? AbortSignal.any([timeout, signal]) : timeout });
+    const res = await fetch(url, {
+      ...init,
+      headers: { ...headers, ...(init?.headers as Record<string, string> | undefined) },
+      signal: signal ? AbortSignal.any([timeout, signal]) : timeout,
+    });
     const ms = Date.now() - started;
 
     if (!res.ok) {
@@ -86,8 +96,9 @@ export function createApiClient({
   const inFlight = new Map<string, Promise<unknown>>();
 
   async function readCache<T>(key: string, schema: z.ZodType<T>): Promise<T | undefined> {
+    if (!cache) return undefined;
     try {
-      const hit = await cache.get(key);
+      const hit = await cache.store.get(key);
       if (hit === undefined) return undefined;
       const parsed = schema.safeParse(hit);
       if (parsed.success) {
@@ -110,16 +121,20 @@ export function createApiClient({
       inFlight.set(key, request);
     }
     const raw = await request;
+    const data = parse(raw, schema);
+    try {
+      if (cache) await cache.store.set(key, raw, cache.ttlSeconds);
+    } catch (err) {
+      console.warn('[cache] write failed', err);
+    }
+    return data;
+  }
 
+  function parse<T>(raw: unknown, schema: z.ZodType<T>): T {
     const parsed = schema.safeParse(raw);
     if (!parsed.success) {
       console.error(`[http] ${service} answered in an unexpected shape`, z.prettifyError(parsed.error));
       throw new Error(`${service} answered in an unexpected shape`);
-    }
-    try {
-      await cache.set(key, raw, ttlSeconds);
-    } catch (err) {
-      console.warn('[cache] write failed', err);
     }
     return parsed.data;
   }
@@ -128,6 +143,11 @@ export function createApiClient({
     async getJson(url, schema, signal) {
       const key = cacheKey(service, url, secretParams);
       return (await readCache(key, schema)) ?? load(key, url, schema, signal);
+    },
+
+    async postJson(url, body, schema, signal) {
+      const init = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) };
+      return parse(await enqueue(() => fetchJson(url, signal, init)), schema);
     },
   };
 }

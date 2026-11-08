@@ -13,6 +13,8 @@ const EnvSchema = z
     // RapidAPI account key, for OpenTripMap's places API (free Basic plan). Required
     // everywhere so searchPlaces always works.
     RAPIDAPI_KEY: z.string({ error: 'is required' }).trim().min(1, 'is required'),
+    // Google Maps Platform key with the Routes API enabled, for findConnections.
+    GOOGLE_MAPS_API_KEY: z.string({ error: 'is required' }).trim().min(1, 'is required'),
     // Cache store. Unset locally: an in-memory cache. Vercel's Upstash integration
     // may inject the KV_* names instead, as @upstash/redis also accepts.
     UPSTASH_REDIS_REST_URL: z.url().optional(),

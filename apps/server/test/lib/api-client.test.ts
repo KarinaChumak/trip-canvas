@@ -12,8 +12,8 @@ function stubFetch(body: unknown, status = 200) {
   return fetch;
 }
 
-function client(options: { timeoutMs?: number; cache?: Cache } = {}) {
-  return createApiClient({ service: 'Test', cache: memoryCache(), ttlSeconds: 60, ...options });
+function client({ timeoutMs, cache = memoryCache() }: { timeoutMs?: number; cache?: Cache } = {}) {
+  return createApiClient({ service: 'Test', timeoutMs, cache: { store: cache, ttlSeconds: 60 } });
 }
 
 afterEach(() => {

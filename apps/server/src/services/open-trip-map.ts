@@ -165,9 +165,8 @@ export function websiteUrl(value: string | undefined): string | null {
 export function createOpenTripMapClient({ cache, rapidApiKey }: OpenTripMapClientDeps): OpenTripMapClient {
   const api = createApiClient({
     service: 'OpenTripMap',
-    cache,
     // Places hardly change during a day.
-    ttlSeconds: 24 * 60 * 60,
+    cache: { store: cache, ttlSeconds: 24 * 60 * 60 },
     // Headers, not query parameters, so the key never lands in cache keys or logs.
     headers: { 'X-RapidAPI-Key': rapidApiKey, 'X-RapidAPI-Host': RAPIDAPI_HOST },
   });
