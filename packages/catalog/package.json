@@ -12,11 +12,11 @@
     "typecheck": "tsc -p ."
   },
   "dependencies": {
-    "@json-render/core": "^0.21.4",
-    "@json-render/react": "^0.21.4",
-    "zod": "^4.6.7"
+    "@json-render/core": "catalog:",
+    "@json-render/react": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
-    "typescript": "^7.0.2"
+    "typescript": "catalog:"
   }
 }

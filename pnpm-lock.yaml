@@ -162,6 +162,27 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+catalogs:
+  default:
+    '@json-render/core':
+      specifier: ^0.21.4
+      version: 0.21.4
+    '@json-render/react':
+      specifier: ^0.21.4
+      version: 0.21.4
+    '@types/node':
+      specifier: ^26.6.6
+      version: 26.6.6
+    ai:
+      specifier: ^7.0.162
+      version: 7.0.162
+    typescript:
+      specifier: ^7.0.2
+      version: 7.0.2
+    zod:
+      specifier: ^4.6.7
+      version: 4.6.7
+
 importers:
 
   .:
@@ -203,7 +224,7 @@ importers:
         specifier: ^1.41.0
         version: 1.41.0
       ai:
-        specifier: ^7.0.162
+        specifier: 'catalog:'
         version: 7.0.162(zod@4.6.7)
       catalog:
         specifier: workspace:*
@@ -215,11 +236,11 @@ importers:
         specifier: ^11.5.3
         version: 11.5.3
       zod:
-        specifier: ^4.6.7
+        specifier: 'catalog:'
         version: 4.6.7
     devDependencies:
       '@types/node':
-        specifier: ^26.6.6
+        specifier: 'catalog:'
         version: 26.6.6
       esbuild:
         specifier: 0.28.2
@@ -228,7 +249,7 @@ importers:
         specifier: ^4.23.15
         version: 4.23.15
       typescript:
-        specifier: ^7.0.2
+        specifier: 'catalog:'
         version: 7.0.2
 
   apps/web:
@@ -240,10 +261,10 @@ importers:
         specifier: 5.3.0
         version: 5.3.0
       '@json-render/core':
-        specifier: ^0.21.4
+        specifier: 'catalog:'
         version: 0.21.4(zod@4.6.7)
       '@json-render/react':
-        specifier: ^0.21.4
+        specifier: 'catalog:'
         version: 0.21.4(react@19.3.1)(zod@4.6.7)
       '@tanstack/react-query':
         specifier: ^5.104.5
@@ -252,7 +273,7 @@ importers:
         specifier: workspace:*
         version: link:../../packages/contracts
       ai:
-        specifier: ^7.0.162
+        specifier: 'catalog:'
         version: 7.0.162(zod@4.6.7)
       catalog:
         specifier: workspace:*
@@ -294,7 +315,7 @@ importers:
         specifier: ^1.1.6
         version: 1.1.6(react@19.3.1)
       zod:
-        specifier: ^4.6.7
+        specifier: 'catalog:'
         version: 4.6.7
       zustand:
         specifier: ^5.0.16
@@ -310,7 +331,7 @@ importers:
         specifier: 4.3.3
         version: 4.3.3(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
       '@types/node':
-        specifier: ^26.6.6
+        specifier: 'catalog:'
         version: 26.6.6
       '@types/react':
         specifier: ^19.3.0
@@ -343,7 +364,7 @@ importers:
         specifier: 4.3.3
         version: 4.3.3
       typescript:
-        specifier: ^7.0.2
+        specifier: 'catalog:'
         version: 7.0.2
       vite:
         specifier: ^8.3.5
@@ -352,27 +373,27 @@ importers:
   packages/catalog:
     dependencies:
       '@json-render/core':
-        specifier: ^0.21.4
+        specifier: 'catalog:'
         version: 0.21.4(zod@4.6.7)
       '@json-render/react':
-        specifier: ^0.21.4
+        specifier: 'catalog:'
         version: 0.21.4(react@19.3.1)(zod@4.6.7)
       zod:
-        specifier: ^4.6.7
+        specifier: 'catalog:'
         version: 4.6.7
     devDependencies:
       typescript:
-        specifier: ^7.0.2
+        specifier: 'catalog:'
         version: 7.0.2
 
   packages/contracts:
     dependencies:
       zod:
-        specifier: ^4.6.7
+        specifier: 'catalog:'
         version: 4.6.7
     devDependencies:
       typescript:
-        specifier: ^7.0.2
+        specifier: 'catalog:'
         version: 7.0.2
 
 packages:
