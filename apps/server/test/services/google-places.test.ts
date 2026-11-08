@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { validateEmitComponent } from '@trip-canvas/catalog/schema';
-import { categoryFor, createGooglePlacesClient, hoursFor, kindFor, priceLevelFor, type PlaceSearch } from '../../src/services/google-places.js';
+import { categoryFor, createGooglePlacesClient, hoursFor, kindFor, PlacePhotoNotFoundError, priceLevelFor, type PlaceSearch } from '../../src/services/google-places.js';
 // Hand-made in the shape of a Text Search answer with our field mask: the dev key is
 // not enabled for the Places API yet, so no live response could be recorded.
 import yaowarat from '../fixtures/google-places-yaowarat-street-food.json' with { type: 'json' };
@@ -127,5 +127,49 @@ describe('kind, category and price mapping', () => {
     expect(priceLevelFor('PRICE_LEVEL_VERY_EXPENSIVE')).toBe(4);
     expect(priceLevelFor('PRICE_LEVEL_UNSPECIFIED')).toBeNull();
     expect(priceLevelFor(undefined)).toBeNull();
+  });
+});
+
+describe('googlePlaces.getPlacePhoto', () => {
+  const ID = 'ChIJq6qq6lmZ4jARSBYHgbzL0pE';
+  const PHOTOS = {
+    photos: [
+      { name: `places/${ID}/photos/AAA`, widthPx: 4032, heightPx: 3024, authorAttributions: [] },
+      { name: `places/${ID}/photos/BBB`, authorAttributions: [{ displayName: 'Somchai P.', uri: 'https://maps.google.com/maps/contrib/1' }] },
+    ],
+  };
+  const MEDIA = { name: `places/${ID}/photos/BBB/media`, photoUri: 'https://lh3.googleusercontent.com/place-photos/abc=w800' };
+
+  function stubResponses(...bodies: unknown[]) {
+    const fetch = vi.fn(async (_url: URL, _init: RequestInit) => new Response(JSON.stringify(bodies.shift())));
+    vi.stubGlobal('fetch', fetch);
+    return fetch;
+  }
+
+  it('asks details for photos only, then the media URL without a redirect, the key in a header', async () => {
+    const fetch = stubResponses(PHOTOS, MEDIA);
+
+    expect(await googlePlaces().getPlacePhoto(ID, 1, 800)).toEqual({
+      photoUri: MEDIA.photoUri,
+      author: { name: 'Somchai P.', url: 'https://maps.google.com/maps/contrib/1' },
+      count: 2,
+    });
+    const [detailsUrl, detailsInit] = fetch.mock.calls[0]!;
+    const [mediaUrl, mediaInit] = fetch.mock.calls[1]!;
+    expect(String(detailsUrl)).toBe(`https://places.googleapis.com/v1/places/${ID}`);
+    expect(detailsInit.headers).toMatchObject({ 'X-Goog-Api-Key': 'test-key', 'X-Goog-FieldMask': 'photos' });
+    expect(String(mediaUrl)).toBe(`https://places.googleapis.com/v1/places/${ID}/photos/BBB/media?maxWidthPx=800&skipHttpRedirect=true`);
+    expect(mediaInit.headers).toEqual({ 'X-Goog-Api-Key': 'test-key' });
+  });
+
+  it('has no author when Google lists none', async () => {
+    stubResponses(PHOTOS, MEDIA);
+    expect(await googlePlaces().getPlacePhoto(ID, 0, 400)).toMatchObject({ author: null, count: 2 });
+  });
+
+  it('throws not-found past the last photo, without a billed media call', async () => {
+    const fetch = stubResponses({});
+    await expect(googlePlaces().getPlacePhoto(ID, 0, 400)).rejects.toBeInstanceOf(PlacePhotoNotFoundError);
+    expect(fetch).toHaveBeenCalledTimes(1);
   });
 });

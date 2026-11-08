@@ -12,7 +12,7 @@ const PLACE: FoundPlace = {
 };
 
 function searchPlacesTool(places: FoundPlace[]) {
-  const googlePlaces: GooglePlacesClient = { searchPlaces: vi.fn(async () => places) };
+  const googlePlaces: GooglePlacesClient = { searchPlaces: vi.fn(async () => places), getPlacePhoto: vi.fn() };
   return { tool: createSearchPlacesTool({ googlePlaces }), googlePlaces };
 }
 

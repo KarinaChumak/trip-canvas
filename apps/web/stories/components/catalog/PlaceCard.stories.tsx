@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import MockDate from 'mockdate';
 import { PLACE_KINDS, type PlaceCardData } from '@trip-canvas/catalog';
 import { PlaceCard } from '@/components/catalog/PlaceCard';
+import { photoFails, photosHandler } from '../../fixtures/place-photos';
 
 /** A story's beforeEach that fixes the clock at `iso` and restores it afterwards. */
 function fixNow(iso: string) {
@@ -16,7 +17,7 @@ const meta = {
   component: PlaceCard,
   // The card reads the clock, so fix it: the opening state never depends on when the
   // story is viewed. 13 Nov 2026 is a Friday; noon in Lisbon (UTC+0).
-  beforeEach: fixNow('2026-11-13T12:00:00Z'),
+  beforeEach: [fixNow('2026-11-13T12:00:00Z'), ({ msw }) => msw.use(photosHandler(3))],
 } satisfies Meta<typeof PlaceCard>;
 
 export default meta;
@@ -42,6 +43,12 @@ export const FullyRated: Story = {
       utcOffsetMinutes: 0,
     },
   },
+};
+
+/** The server can't get the photo (502): no photo area, the card keeps everything the agent sent. Other photo states: PlacePhotos. */
+export const PhotoFails: Story = {
+  args: FullyRated.args,
+  beforeEach: ({ msw }) => msw.use(photoFails),
 };
 
 /** The same hours on all 7 days. */

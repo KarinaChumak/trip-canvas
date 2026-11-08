@@ -31,7 +31,7 @@ function appWith(model: MockLanguageModelV4) {
   const cache = memoryCache();
   const services = createServices({ cache, env: { NOMINATIM_USER_AGENT: 'test', RAPIDAPI_KEY: 'test', GOOGLE_MAPS_API_KEY: 'test' } });
   const tools = createTools(services);
-  return createApp({ model, tools, openTripMap: services.openTripMap, cache });
+  return createApp({ model, tools, openTripMap: services.openTripMap, googlePlaces: services.googlePlaces, cache });
 }
 
 function postChat(app: ReturnType<typeof createApp>, body: unknown) {
