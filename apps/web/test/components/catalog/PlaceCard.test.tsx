@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { PlaceCardData } from '@trip-canvas/catalog';
 import { PlaceCard } from '@/components/catalog/PlaceCard';
 
@@ -25,10 +26,15 @@ const CUNHA: PlaceCardData = {
 const FRIDAY_NOON = new Date('2026-11-13T12:00:00Z');
 const LUNCH_AND_DINNER = everyDay('11:00-14:00,17:00-22:00');
 
-// The card reads the clock itself, so each render fixes it first.
+// The card reads the clock itself, so each render fixes it first. It loads its photos
+// through TanStack Query, as in the app.
 function render(place: PlaceCardData, now = FRIDAY_NOON) {
   vi.useFakeTimers({ now });
-  return renderToStaticMarkup(<PlaceCard place={place} />);
+  return renderToStaticMarkup(
+    <QueryClientProvider client={new QueryClient()}>
+      <PlaceCard place={place} />
+    </QueryClientProvider>,
+  );
 }
 
 afterEach(() => {
@@ -41,6 +47,11 @@ describe('PlaceCard', () => {
     expect(html).toContain('Cunha');
     expect(html).toContain('Beco de Santa Helena 13, 1100-117 Lisboa, Portugal');
     expect(html).toContain('Rated 4.5 out of 5');
+  });
+
+  it('shows a photo placeholder for a place with an id, and none without', () => {
+    expect(render(CUNHA)).toContain('aria-label="Loading photo"');
+    expect(render({ ...CUNHA, placeId: null })).not.toContain('Loading photo');
   });
 
   it('leaves out the address when there is none', () => {

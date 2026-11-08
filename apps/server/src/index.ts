@@ -24,6 +24,7 @@ const app: Hono = createApp({
   model: anthropic(env.CHAT_MODEL),
   tools: createTools(services),
   openTripMap: services.openTripMap,
+  googlePlaces: services.googlePlaces,
   cache,
   accessCode: env.ACCESS_CODE,
   flushTracing: tracing.flush,

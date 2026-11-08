@@ -1,3 +1,4 @@
+import type { PlacePhoto } from '@trip-canvas/contracts';
 import type { PlaceKind } from '@trip-canvas/catalog';
 import { z } from 'zod';
 import { createApiClient } from '../lib/api-client.js';
@@ -34,7 +35,17 @@ export type FoundPlace = {
 export type GooglePlacesClient = {
   /** Places matching a text query around a point, in Google's order. */
   searchPlaces(search: PlaceSearch, signal?: AbortSignal): Promise<FoundPlace[]>;
+  /** A short-lived URL for photo `index`, via a fresh details call as photo names expire; throws `PlacePhotoNotFoundError` past the last. */
+  getPlacePhoto(id: string, index: number, width: number, signal?: AbortSignal): Promise<PlacePhoto>;
 };
+
+/** The place has no photo at the asked index. */
+export class PlacePhotoNotFoundError extends Error {
+  constructor(id: string, index: number) {
+    super(`Place ${id} has no photo ${index}`);
+    this.name = 'PlacePhotoNotFoundError';
+  }
+}
 
 type GooglePlacesClientDeps = { apiKey: string };
 
@@ -68,6 +79,23 @@ const SearchResponse = z.object({
     )
     .default([]),
 });
+
+// Photo names are in the free IDs-only details tier; only the media call below is billed.
+const PHOTOS_FIELD_MASK = 'photos';
+
+const PhotosResponse = z.object({
+  photos: z
+    .array(
+      z.object({
+        name: z.string(),
+        // Always there, maybe empty; when not, it must be shown with the photo.
+        authorAttributions: z.array(z.object({ displayName: z.string(), uri: z.string().optional() })).default([]),
+      }),
+    )
+    .default([]),
+});
+
+const MediaResponse = z.object({ photoUri: z.string() });
 
 const PRICE_LEVELS = ['FREE', 'INEXPENSIVE', 'MODERATE', 'EXPENSIVE', 'VERY_EXPENSIVE'].map((l) => `PRICE_LEVEL_${l}`);
 
@@ -136,6 +164,8 @@ export function categoryFor(primaryType: string | undefined): string {
 export function createGooglePlacesClient({ apiKey }: GooglePlacesClientDeps): GooglePlacesClient {
   // In headers, so the key never shows up in a URL or a log line.
   const search = createApiClient({ service: 'Google Places', headers: { 'X-Goog-Api-Key': apiKey, 'X-Goog-FieldMask': SEARCH_FIELD_MASK } });
+  const photos = createApiClient({ service: 'Google Places', headers: { 'X-Goog-Api-Key': apiKey, 'X-Goog-FieldMask': PHOTOS_FIELD_MASK } });
+  const media = createApiClient({ service: 'Google Places', headers: { 'X-Goog-Api-Key': apiKey } });
 
   return {
     async searchPlaces({ query, latitude, longitude, radiusMeters, limit }, signal) {
@@ -171,6 +201,26 @@ export function createGooglePlacesClient({ apiKey }: GooglePlacesClientDeps): Go
           utcOffsetMinutes: place.utcOffsetMinutes ?? null,
         };
       });
+    },
+
+    async getPlacePhoto(id, index, width, signal) {
+      const list = await photos.getJson(new URL(`https://places.googleapis.com/v1/places/${encodeURIComponent(id)}`), PhotosResponse, signal);
+      const photo = list.photos[index];
+      if (!photo) throw new PlacePhotoNotFoundError(id, index);
+
+      // skipHttpRedirect: Google answers with the image URL instead of redirecting to
+      // it, so the browser loads the image without ever seeing the key (D-050).
+      const url = new URL(`https://places.googleapis.com/v1/${photo.name}/media`);
+      url.searchParams.set('maxWidthPx', String(width));
+      url.searchParams.set('skipHttpRedirect', 'true');
+      const { photoUri } = await media.getJson(url, MediaResponse, signal);
+
+      const author = photo.authorAttributions[0];
+      return {
+        photoUri,
+        author: author ? { name: author.displayName, url: author.uri ?? null } : null,
+        count: list.photos.length,
+      };
     },
   };
 }

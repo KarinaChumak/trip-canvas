@@ -4,6 +4,7 @@ import { Badge } from '@/components/shadcn/badge';
 import { Button } from '@/components/shadcn/button';
 import { hoursToday, isOpenAt } from '@/lib/opening-hours-utils';
 import { PlaceKindBadge } from './PlaceKindBadge';
+import { PlacePhotos } from './PlacePhotos';
 import { SourceCredit } from './SourceCredit';
 import {
   Card,
@@ -28,7 +29,10 @@ function formatToday(day: string | null): string {
   return day === '00:00-24:00' ? 'Open 24 hours' : `Today ${day.replaceAll('-', '–').replaceAll(',', ', ')}`;
 }
 
-/** Renders only what the agent sent: searchPlaces already returned every field it shows. */
+/**
+ * Renders what the agent sent at once: searchPlaces already returned every field but the
+ * photos, which a card with a `placeId` loads itself (photo names can't pass through the agent, D-050).
+ */
 export function PlaceCard({ place }: PlaceCardProps) {
   const now = new Date();
   const open = isOpenAt(place.hours, place.utcOffsetMinutes, now);
@@ -36,6 +40,7 @@ export function PlaceCard({ place }: PlaceCardProps) {
 
   return (
     <Card className="w-full max-w-md">
+      {place.placeId && <PlacePhotos placeId={place.placeId} className="px-(--card-spacing)" />}
       <CardHeader>
         <CardTitle>{place.name}</CardTitle>
         {place.address && (
