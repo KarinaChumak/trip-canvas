@@ -80,7 +80,17 @@ export const OneStop: Story = {
   args: { list: { title: 'Nuremberg → Porto', recommendedIndex: null, options: [getFare({ id: 'tp-579-1944', amount: 189.5, currency: 'EUR', outbound: NUE_OPO })] } },
 };
 
-const DMK_NRT = getDirectLeg('Thai AirAsia X', { flight: 'XJ 606', from: 'DMK', to: 'NRT', departs: '2026-12-10 23:55', arrives: '2026-12-11 08:05', minutes: 370 });
+const NUE_BKK = getLeg('Air Arabia', 1375, [
+  getSegment({ flight: 'G9 384', from: 'NUE', to: 'SHJ', departs: '2026-12-10 15:20', arrives: '2026-12-10 23:35', minutes: 375 }),
+  getSegment({ flight: 'G9 841', from: 'SHJ', to: 'BKK', departs: '2026-12-11 13:20', arrives: '2026-12-11 22:35', minutes: 375 }),
+]);
+
+/** A long connection abroad: the stop shows its city, so it's clear the wait is in the Emirates. */
+export const LongLayoverAbroad: Story = {
+  args: { list: { title: 'Nuremberg → Bangkok', recommendedIndex: null, options: [getFare({ id: 'g9-384-841', amount: 412, currency: 'EUR', outbound: NUE_BKK })] } },
+};
+
+const DMK_NRT =getDirectLeg('Thai AirAsia X', { flight: 'XJ 606', from: 'DMK', to: 'NRT', departs: '2026-12-10 23:55', arrives: '2026-12-11 08:05', minutes: 370 });
 
 /** A red-eye that lands the next morning, marked "+1". */
 export const OvernightArrival: Story = {
