@@ -134,6 +134,61 @@ const ConnectionListData = z.strictObject({
     .describe('Index in options of the one that fits the request best; it is shown first. null for no preference'),
 });
 
+const Iata = z.string().regex(/^[A-Z]{3}$/, 'Expected a 3-letter IATA code');
+
+const FlightLeg = z.strictObject({
+  carrier: z.string().min(1).nullable().describe('Airline name, e.g. "AirAsia"'),
+  from: Iata,
+  to: Iata,
+  departureDate: IsoDate.describe('Local date at the start'),
+  departureTime: ClockTime.describe('Local time at the start'),
+  arrivalDate: IsoDate.describe('Local date at the end'),
+  arrivalTime: ClockTime.describe('Local time at the end'),
+  durationMinutes: z.number().int().positive().describe('Including layovers'),
+  stops: z.number().int().min(0),
+  segments: z
+    .array(
+      z.strictObject({
+        flight: z.string().min(1).describe('Carrier code and number, e.g. "FD 3433"'),
+        operatingCarrier: z.string().min(1).nullable(),
+        from: Iata,
+        to: Iata,
+        departureDate: IsoDate,
+        departureTime: ClockTime,
+        arrivalDate: IsoDate,
+        arrivalTime: ClockTime,
+        durationMinutes: z.number().int().positive(),
+        aircraft: z.string().min(1).nullable(),
+      }),
+    )
+    .min(1)
+    .max(6)
+    .describe('One segment per flight, in order'),
+});
+
+const FlightOptionData = z.strictObject({
+  id: z.string().min(1).describe('The flight id from searchFlights'),
+  price: z.strictObject({
+    amount: z.number().nonnegative().describe('Total for all travellers and both legs'),
+    currency: z.string().regex(/^[A-Z]{3}$/, 'Expected an ISO 4217 code'),
+    verified: z.boolean(),
+  }),
+  cabinClass: z.string().min(1),
+  outbound: FlightLeg,
+  inbound: FlightLeg.nullable().describe('The return leg of a round-trip fare; null one way'),
+});
+
+const FlightListData = z.strictObject({
+  title: z.string().min(1).describe('The route without the date, which the card shows: e.g. "Bangkok → Chiang Mai"'),
+  options: z.array(FlightOptionData).max(10).describe("searchFlights' flights, copied as is"),
+  recommendedIndex: z
+    .number()
+    .int()
+    .min(0)
+    .nullable()
+    .describe('Index in options of the one that fits the request best; it is shown first. null for no preference'),
+});
+
 /** Catalog components: Zod props plus the one-line description the model sees. */
 export const components = {
   PlaceCard: {
@@ -156,6 +211,10 @@ export const components = {
     props: ConnectionListData,
     description: 'Train, bus or ferry connections for one direction from findConnections; one list per direction.',
   },
+  FlightList: {
+    props: FlightListData,
+    description: 'Flight fares from searchFlights for one direction, or for one round-trip search; prices are at search time.',
+  },
 } as const;
 
 export type ComponentName = keyof typeof components;
@@ -166,6 +225,9 @@ export type DayItineraryData = z.infer<typeof DayItineraryData>;
 export type MapViewData = z.infer<typeof MapViewData>;
 export type ConnectionOptionData = z.infer<typeof ConnectionOptionData>;
 export type ConnectionListData = z.infer<typeof ConnectionListData>;
+export type FlightLegData = z.infer<typeof FlightLeg>;
+export type FlightOptionData = z.infer<typeof FlightOptionData>;
+export type FlightListData = z.infer<typeof FlightListData>;
 
 /** The json-render catalog shared by the server (validation) and the web app (registry). */
 export const catalog = defineCatalog(schema, { components, actions: {} });

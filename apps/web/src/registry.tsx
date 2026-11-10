@@ -2,6 +2,7 @@ import { defineRegistry } from '@json-render/react';
 import { catalog } from '@trip-canvas/catalog';
 import { ConnectionList } from '@/components/catalog/ConnectionList';
 import { DayItinerary } from '@/components/catalog/DayItinerary';
+import { FlightList } from '@/components/catalog/FlightList';
 import { MapView } from '@/components/catalog/MapView';
 import { PlaceCard } from '@/components/catalog/PlaceCard';
 import { WeatherStrip } from '@/components/catalog/WeatherStrip';
@@ -17,5 +18,6 @@ export const { registry } = defineRegistry(catalog, {
     DayItinerary: ({ props }) => <DayItinerary day={props} />,
     MapView: ({ props }) => <MapView map={props} />,
     ConnectionList: ({ props }) => <ConnectionList list={props} />,
+    FlightList: ({ props }) => <FlightList list={props} />,
   },
 });

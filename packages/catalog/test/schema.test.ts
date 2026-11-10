@@ -88,3 +88,20 @@ describe('validateSpec', () => {
     expect(validateSpec(spec).ok).toBe(false);
   });
 });
+
+describe('FlightList', () => {
+  const { props } = validInputs.FlightList.component;
+  const flight = props.options[0]!;
+
+  it('accepts a round-trip fare and an empty list', () => {
+    const roundTrip = { ...flight, inbound: { ...flight.outbound, from: 'CNX', to: 'DMK' } };
+    expect(validateEmitComponent({ component: { type: 'FlightList', props: { ...props, options: [roundTrip] } } }).ok).toBe(true);
+    expect(validateEmitComponent({ component: { type: 'FlightList', props: { ...props, options: [] } } }).ok).toBe(true);
+  });
+
+  it('rejects an airport name where an IATA code belongs', () => {
+    const broken = { ...flight, outbound: { ...flight.outbound, from: 'Don Mueang' } };
+    const result = validateEmitComponent({ component: { type: 'FlightList', props: { ...props, options: [broken] } } });
+    expect(result).toMatchObject({ ok: false, error: expect.stringContaining('component.props.options[0].outbound.from') });
+  });
+});
