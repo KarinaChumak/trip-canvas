@@ -1,6 +1,7 @@
 import { EMIT_COMPONENT_TOOL } from '@trip-canvas/catalog/schema';
 import type { Services } from '../services/index.js';
 import { emitComponent } from './emit-component.js';
+import { createFindCheapestFlightDatesTool } from './find-cheapest-flight-dates.js';
 import { createFindConnectionsTool } from './find-connections.js';
 import { createGeocodeTool } from './geocode.js';
 import { createSearchFlightsTool } from './search-flights.js';
@@ -13,6 +14,7 @@ export function createTools({ googlePlaces, googleRoutes, ignav, nominatim, open
   // Each tool gets only the services it calls, so this reads as a map of who uses what.
   return {
     [EMIT_COMPONENT_TOOL]: emitComponent,
+    findCheapestFlightDates: createFindCheapestFlightDatesTool({ ignav }),
     findConnections: createFindConnectionsTool({ googleRoutes }),
     geocode: createGeocodeTool({ nominatim }),
     getWeather: createWeatherTool({ nominatim, openMeteo }),
