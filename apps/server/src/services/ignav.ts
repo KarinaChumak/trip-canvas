@@ -61,9 +61,26 @@ export type Flight = {
   inbound: FlightLeg | null;
 };
 
+export type CheapestFlightDatesSearch = Omit<FlightSearch, 'departureDate' | 'returnDate'> & {
+  /** First and last departure day to try, YYYY-MM-DD, at most 31 days apart. */
+  departureStart: string;
+  departureEnd: string;
+  /** Days between departure and return for a round trip; left out for one way. */
+  stayDays?: number;
+};
+
+/** The cheapest fare for one departure day; Ignav marks these prices unverified. */
+export type CheapestFlightDate = {
+  departureDate: string;
+  returnDate: string | null;
+  price: { amount: number; currency: string } | null;
+};
+
 export type IgnavClient = {
   /** Fares for one route and date (or date pair), cheapest first. */
   searchFlights(search: FlightSearch, signal?: AbortSignal): Promise<Flight[]>;
+  /** The cheapest fare per departure day over up to 31 days, in one paid request. */
+  findCheapestFlightDates(search: CheapestFlightDatesSearch, signal?: AbortSignal): Promise<CheapestFlightDate[]>;
 };
 
 type IgnavClientDeps = {
@@ -102,6 +119,16 @@ const FaresResponse = z.object({
       cabin_class: z.string(),
       outbound: Leg,
       inbound: Leg.nullish(),
+    }),
+  ),
+});
+
+const CheapestFlightDatesResponse = z.object({
+  dates: z.array(
+    z.object({
+      departure_date: z.string(),
+      return_date: z.string().nullish(),
+      price: Price.nullish(),
     }),
   ),
 });
@@ -180,6 +207,26 @@ export function createIgnavClient({ apiKey, cache }: IgnavClientDeps): IgnavClie
           inbound: inbound ? toLeg(inbound) : null,
         }))
         .sort((a, b) => a.price.amount - b.price.amount);
+    },
+
+    async findCheapestFlightDates({ origin, destination, departureStart, departureEnd, stayDays, adults, cabinClass, maxStops, market }, signal) {
+      const body = {
+        origin: origin.toUpperCase(),
+        destination: destination.toUpperCase(),
+        departure_date_range: { start: departureStart, end: departureEnd },
+        ...(stayDays !== undefined && { stay_days: stayDays }),
+        adults,
+        cabin_class: cabinClass,
+        ...(maxStops !== undefined && { max_stops: maxStops }),
+        market: market.toUpperCase(),
+      };
+      // Ignav calls the list "dates": one entry per departure day, with that day's cheapest fare.
+      const { dates: dayFares } = await api.postJson(new URL(`${BASE_URL}/fares/cheapest-dates`), body, CheapestFlightDatesResponse, signal);
+      return dayFares.map(({ departure_date, return_date, price }) => ({
+        departureDate: departure_date,
+        returnDate: return_date ?? null,
+        price: price ? { amount: price.amount, currency: price.currency } : null,
+      }));
     },
   };
 }

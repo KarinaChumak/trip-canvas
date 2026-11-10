@@ -123,3 +123,24 @@ describe('ignav.searchFlights', () => {
     await expect(ignav().searchFlights(BKK_CNX)).rejects.toThrow(/Ignav returned 400.*departure_date_in_past/);
   });
 });
+
+describe('ignav.findCheapestFlightDates', () => {
+  it('asks for a date range and trip length, and keeps days without a fare as null', async () => {
+    const fetch = stubFetch({
+      dates: [
+        { departure_date: '2027-01-16', return_date: '2027-01-31', price: { amount: 595, currency: 'EUR', status: 'unverified' } },
+        { departure_date: '2027-01-17', return_date: '2027-02-01', price: null },
+      ],
+    });
+    const { departureDate: _day, ...search } = BKK_CNX;
+    const dates = await ignav().findCheapestFlightDates({ ...search, departureStart: '2027-01-16', departureEnd: '2027-01-17', stayDays: 15 });
+
+    expect(dates).toEqual([
+      { departureDate: '2027-01-16', returnDate: '2027-01-31', price: { amount: 595, currency: 'EUR' } },
+      { departureDate: '2027-01-17', returnDate: '2027-02-01', price: null },
+    ]);
+    const [url, init] = fetch.mock.calls[0]!;
+    expect(String(url)).toBe('https://ignav.com/api/fares/cheapest-dates');
+    expect(JSON.parse(String(init.body))).toMatchObject({ origin: 'DMK', departure_date_range: { start: '2027-01-16', end: '2027-01-17' }, stay_days: 15 });
+  });
+});
