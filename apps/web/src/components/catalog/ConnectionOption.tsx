@@ -14,7 +14,7 @@ import { Badge } from '@/components/shadcn/badge';
 import { Button } from '@/components/shadcn/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/shadcn/collapsible';
 import { Item, ItemActions, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from '@/components/shadcn/item';
-import { formatDay, formatDuration } from '@/lib/format';
+import { formatDay, formatDuration } from '@/lib/formatting-utils';
 
 type TransitMode = ConnectionOptionData['segments'][number]['mode'];
 

@@ -81,4 +81,28 @@ export const validInputs = {
       },
     },
   },
+  FlightList: {
+    component: {
+      type: 'FlightList',
+      props: {
+        title: 'Bangkok → Chiang Mai',
+        recommendedIndex: null,
+        options: [
+          {
+            id: 'ignav-fd-3433',
+            price: { amount: 1290, currency: 'THB', verified: true },
+            cabinClass: 'economy',
+            outbound: {
+              carrier: 'AirAsia', from: 'DMK', to: 'CNX', stops: 0, durationMinutes: 75,
+              departureDate: '2026-12-10', departureTime: '07:05', arrivalDate: '2026-12-10', arrivalTime: '08:20',
+              segments: [
+                { flight: 'FD 3433', operatingCarrier: null, from: 'DMK', to: 'CNX', departureDate: '2026-12-10', departureTime: '07:05', arrivalDate: '2026-12-10', arrivalTime: '08:20', durationMinutes: 75, aircraft: 'Airbus A320' },
+              ],
+            },
+            inbound: null,
+          },
+        ],
+      },
+    },
+  },
 } satisfies Record<string, EmitComponentInput>;
