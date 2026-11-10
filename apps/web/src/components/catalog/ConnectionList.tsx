@@ -5,7 +5,7 @@ import { Button } from '@/components/shadcn/button';
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/shadcn/card';
 import { ItemGroup } from '@/components/shadcn/item';
 import { initialWindow, showEarlier, showLater } from '@/lib/connection-window';
-import { formatDay } from '@/lib/format';
+import { formatDay } from '@/lib/formatting-utils';
 import { ConnectionOption } from './ConnectionOption';
 import { SourceCredit } from './SourceCredit';
 

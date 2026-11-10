@@ -24,7 +24,7 @@ import {
   ItemSeparator,
   ItemTitle,
 } from '@/components/shadcn/item';
-import { formatDay, formatDuration } from '@/lib/format';
+import { formatDay, formatDuration } from '@/lib/formatting-utils';
 import { cn } from '@/lib/utils';
 
 type StopKind = DayItineraryData['stops'][number]['kind'];

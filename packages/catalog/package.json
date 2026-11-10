@@ -6,7 +6,8 @@
   "exports": {
     ".": "./src/catalog.ts",
     "./schema": "./src/schema.ts",
-    "./prompt": "./src/prompt.ts"
+    "./prompt": "./src/prompt.ts",
+    "./flight-utils": "./src/flight-utils.ts"
   },
   "scripts": {
     "typecheck": "tsc -p ."
