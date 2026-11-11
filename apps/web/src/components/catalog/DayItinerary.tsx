@@ -6,6 +6,7 @@ import {
   LibraryBigIcon,
   MapPinIcon,
   MusicIcon,
+  NavigationIcon,
   ShoppingBagIcon,
   TramFrontIcon,
   UtensilsIcon,
@@ -13,7 +14,8 @@ import {
 } from 'lucide-react';
 import type { DayItineraryData } from '@trip-canvas/catalog';
 import { Badge } from '@/components/shadcn/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/shadcn/card';
+import { Button } from '@/components/shadcn/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/shadcn/card';
 import {
   Item,
   ItemActions,
@@ -25,6 +27,7 @@ import {
   ItemTitle,
 } from '@/components/shadcn/item';
 import { formatDay, formatDuration } from '@/lib/formatting-utils';
+import { buildWalkingDirectionsLinks } from '@/lib/google-maps-link-utils';
 import { cn } from '@/lib/utils';
 
 type StopKind = DayItineraryData['stops'][number]['kind'];
@@ -52,6 +55,7 @@ type DayItineraryProps = {
 
 export function DayItinerary({ day }: DayItineraryProps) {
   const subtitle = day.date ? `${day.city} · ${formatDay(day.date)}` : day.city;
+  const directionsLinks = buildWalkingDirectionsLinks(day.stops);
 
   return (
     <Card className="w-full max-w-xl">
@@ -90,6 +94,20 @@ export function DayItinerary({ day }: DayItineraryProps) {
           })}
         </ItemGroup>
       </CardContent>
+      {directionsLinks.length > 0 && (
+        // Hands the walk to the Google Maps app, which navigates and tracks the location.
+        // A long day needs two links, named by the times they cover.
+        <CardFooter className="flex-wrap gap-2">
+          {directionsLinks.map((link) => (
+            <Button key={link.from.id} asChild size="sm" variant="outline">
+              <a href={link.url} target="_blank" rel="noreferrer">
+                <NavigationIcon aria-hidden />
+                {directionsLinks.length === 1 ? 'Open in Google Maps' : `Google Maps · ${link.from.time}–${link.to.time}`}
+              </a>
+            </Button>
+          ))}
+        </CardFooter>
+      )}
     </Card>
   );
 }

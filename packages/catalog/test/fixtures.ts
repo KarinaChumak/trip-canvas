@@ -39,8 +39,8 @@ export const validInputs = {
         city: 'Lisbon',
         date: null,
         stops: [
-          { id: 's1', time: '09:30', title: 'São Jorge Castle', kind: 'sight', durationMinutes: 90, note: null },
-          { id: 's2', time: '12:30', title: 'Lunch at Prado', kind: 'food', durationMinutes: null, note: 'Book ahead' },
+          { id: 's1', time: '09:30', title: 'São Jorge Castle', kind: 'sight', durationMinutes: 90, note: null, placeId: null, latitude: null, longitude: null },
+          { id: 's2', time: '12:30', title: 'Lunch at Prado', kind: 'food', durationMinutes: null, note: 'Book ahead', placeId: null, latitude: null, longitude: null },
         ],
       },
     },

@@ -14,7 +14,9 @@ each place as a PlaceCard with the name, category, kind, address, rating,
 reviewCount, priceLevel, url, hours, utcOffsetMinutes and id (as placeId) copied from searchPlaces as they are,
 null included, and a one-sentence description of your own; never invent any of those
 values. For a day
-plan, build the DayItinerary stops from searched places only. To show places on a
+plan, build the DayItinerary stops from searched places only, each with its id (as
+placeId), latitude and longitude copied from searchPlaces; null for a stop that is not a
+searched place, such as a tram ride. To show places on a
 map, use a MapView with the latitude and longitude that geocode or searchPlaces
 returned; never guess coordinates, so search first if you have none.
 

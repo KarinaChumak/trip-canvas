@@ -74,6 +74,9 @@ const DayItineraryData = z.strictObject({
         kind: StopKind,
         durationMinutes: z.number().int().positive().nullable(),
         note: z.string().nullable().describe('A short tip, e.g. "Book ahead"'),
+        placeId: z.string().min(1).nullable().describe("searchPlaces' id, copied as is; null for a stop not from searchPlaces"),
+        latitude: z.number().min(-90).max(90).nullable().describe("searchPlaces' latitude, copied as is; never guessed"),
+        longitude: z.number().min(-180).max(180).nullable().describe("searchPlaces' longitude, copied as is; never guessed"),
       }),
     )
     .min(1)
