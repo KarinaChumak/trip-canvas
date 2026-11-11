@@ -299,6 +299,9 @@ importers:
       ai:
         specifier: 'catalog:'
         version: 7.0.162(zod@4.6.7)
+      airport-utils:
+        specifier: 1.5.5
+        version: 1.5.5
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -620,6 +623,9 @@ packages:
 
   '@cacheable/utils@2.5.0':
     resolution: {integrity: sha512-buipgOVDkkPXNR5+xBpDw7Zk2n1EvU7qBJCNUcL7rhQ//kfpOXPAvQ511Os0vpLYJ1pZnvudNytkQt2hst3wqA==}
+
+  '@date-fns/tz@1.5.0':
+    resolution: {integrity: sha512-lwYN/vDPeNRULcepoE/LO2Pgx+7/RV+S9ARfbc9lr2DtGkOD7pAiruHvbR1RX3Qyf6ja47EWJDMsNK5vK08DJg==}
 
   '@dotenvx/dotenvx@1.75.1':
     resolution: {integrity: sha512-/BITOC9dmS/edY2zQwZNicQ059O6RKabtQfyEafV0nGtfYRNHYy1DIPiYVcov40+tob9hfmBnbR963dS+EQ1DQ==}
@@ -2758,6 +2764,10 @@ packages:
     engines: {node: '>=22'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
+
+  airport-utils@1.5.5:
+    resolution: {integrity: sha512-jh+C+UlDnTvVo8ps/d/vZwdoSHM5suwTBQ/dhCVhc33owfYXojxR53wgTqyKrhJW5cKmz69OegPcpK+nkutMtQ==}
+    engines: {node: '>=22'}
 
   ajv-formats@2.1.1:
     resolution: {integrity: sha512-Wx0Kx52hxE7C18hkMEggYlEifqWZtYaRgouJor+WMdPnQyEK13vgEWyVNup7SoeeoLMsr4kf5h6dOW11I15MUA==}
@@ -5472,6 +5482,8 @@ snapshots:
       hashery: 1.5.1
       keyv: 5.6.0
 
+  '@date-fns/tz@1.5.0': {}
+
   '@dotenvx/dotenvx@1.75.1':
     dependencies:
       '@dotenvx/primitives': 0.8.0
@@ -7458,6 +7470,10 @@ snapshots:
       '@ai-sdk/provider': 4.0.36
       '@ai-sdk/provider-utils': 5.0.75(zod@4.6.7)
       zod: 4.6.7
+
+  airport-utils@1.5.5:
+    dependencies:
+      '@date-fns/tz': 1.5.0
 
   ajv-formats@2.1.1:
     dependencies:

@@ -1,4 +1,4 @@
-import { Fragment } from 'react';
+import { Fragment, Suspense, lazy } from 'react';
 import { PlaneIcon, PlaneLandingIcon, PlaneTakeoffIcon } from 'lucide-react';
 import type { FlightLegData, FlightOptionData } from '@trip-canvas/catalog';
 import { getLayovers } from '@trip-canvas/catalog/flight-utils';
@@ -7,6 +7,19 @@ import { Item, ItemActions, ItemContent, ItemDescription, ItemTitle } from '@/co
 import { Separator } from '@/components/shadcn/separator';
 import { cn } from '@/lib/utils';
 import { daysBetween, formatDay, formatDuration, formatPrice } from '@/lib/formatting-utils';
+
+// The airport dataset behind the city is ~300 KB gzipped, so it loads on the first layover shown.
+// The city is a nicety: if its chunk fails to load (offline, stale deploy), the stop keeps just its
+// code rather than the failed import taking the whole flight list down with it.
+const LayoverCity = lazy(() =>
+  import('./LayoverCity').then(
+    ({ LayoverCity }) => ({ default: LayoverCity }),
+    (error: unknown) => {
+      console.warn('Layover cities failed to load', error);
+      return { default: () => null };
+    },
+  ),
+);
 
 type FlightOptionProps = {
   flight: FlightOptionData;
@@ -55,8 +68,7 @@ type FlightLegRowProps = {
 function FlightLegRow({ leg, direction }: FlightLegRowProps) {
   // "+1" for an overnight arrival, as on a departures board.
   const daysLater = daysBetween(leg.departureDate, leg.arrivalDate);
-  const stopovers = getLayovers(leg.segments).map(({ airport, minutes }) => `${airport} · ${formatDuration(minutes)}`);
-  const stops = leg.stops === 0 ? 'Direct' : `${leg.stops} ${leg.stops === 1 ? 'stop' : 'stops'} ${stopovers.join(', ')}`;
+  const layovers = getLayovers(leg.segments);
   const flights = leg.segments.map((segment) => segment.flight).join(', ');
   const tag = direction && DIRECTIONS[direction];
 
@@ -82,12 +94,42 @@ function FlightLegRow({ leg, direction }: FlightLegRowProps) {
             ))}
             <PlaneIcon className="size-3.5" />
           </div>
-          <span className={leg.stops > 0 ? 'text-primary' : undefined}>{stops}</span>
+          {leg.stops === 0 ? (
+            <span>Direct</span>
+          ) : (
+            <span className="text-primary">
+              {leg.stops} {leg.stops === 1 ? 'stop' : 'stops'}{' '}
+              {layovers.map(({ airport, minutes }, index) => (
+                <Fragment key={`${airport}-${index}`}>
+                  {index > 0 && ', '}
+                  <LayoverStop airport={airport} minutes={minutes} />
+                </Fragment>
+              ))}
+            </span>
+          )}
         </div>
         <AirportTime time={leg.arrivalTime} airport={leg.to} daysLater={daysLater} />
       </div>
       <ItemDescription className="text-xs">{[leg.carrier, flights].filter(Boolean).join(' · ')}</ItemDescription>
     </ItemContent>
+  );
+}
+
+type LayoverStopProps = {
+  airport: string;
+  minutes: number;
+};
+
+/** "SHJ (Sharjah) · 13 h 45 min"; just the code until the city dataset has loaded. */
+function LayoverStop({ airport, minutes }: LayoverStopProps) {
+  return (
+    <>
+      {airport}
+      <Suspense fallback={null}>
+        <LayoverCity airport={airport} />
+      </Suspense>{' '}
+      · {formatDuration(minutes)}
+    </>
   );
 }
 

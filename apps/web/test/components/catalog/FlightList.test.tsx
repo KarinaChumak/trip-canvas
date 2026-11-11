@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { prerender } from 'react-dom/static';
 import type { FlightLegData, FlightListData, FlightOptionData } from '@trip-canvas/catalog';
 import { FlightList } from '@/components/catalog/FlightList';
 
@@ -21,6 +22,13 @@ function getFare(id: string, outbound: FlightLegData, overrides: Partial<FlightO
 
 const render = (list: FlightListData) => renderToStaticMarkup(<FlightList list={list} />);
 
+/** Renders after every lazy part has loaded, e.g. the stop airports' cities. */
+async function renderLoaded(list: FlightListData): Promise<string> {
+  const { prelude } = await prerender(<FlightList list={list} />);
+  // Without React's text and Suspense markers, e.g. "<!--$-->".
+  return (await new Response(prelude).text()).replaceAll(/<!--.*?-->/g, '');
+}
+
 describe('FlightList', () => {
   it('shows a direct flight with its carrier, times, price and source', () => {
     const html = render({ title: 'Bangkok → Chiang Mai', recommendedIndex: null, options: [getFare('a', getDirectLeg('FD 3433'))] });
@@ -37,11 +45,14 @@ describe('FlightList', () => {
     expect(html).not.toContain('+1');
   });
 
-  it('shows the stop airport, the layover and every flight number of a one-stop leg', () => {
+  it('shows the stop airport with its city, the layover and every flight number of a one-stop leg', async () => {
     const segments = [getSegment('TP 579', { from: 'NUE', to: 'LIS' }), getSegment('TP 1944', { from: 'LIS', to: 'OPO', departureTime: '10:40', arrivalTime: '11:35' })];
     const oneStop = { ...getDirectLeg('TP 579', { from: 'NUE', to: 'OPO', durationMinutes: 270 }), stops: 1, segments };
-    const html = render({ title: 'Nuremberg → Porto', recommendedIndex: null, options: [getFare('a', oneStop)] });
-    expect(html).toContain('1 stop LIS · 2 h 20 min');
+    const list = { title: 'Nuremberg → Porto', recommendedIndex: null, options: [getFare('a', oneStop)] };
+    // The city shows once its dataset has loaded; until then, just the code.
+    expect(render(list)).toContain('1 stop LIS · 2 h 20 min');
+    const html = await renderLoaded(list);
+    expect(html).toContain('1 stop LIS (Lisbon) · 2 h 20 min');
     expect(html).toContain('AirAsia · TP 579, TP 1944');
   });
 
