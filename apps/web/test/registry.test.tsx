@@ -94,8 +94,8 @@ describe('registry', () => {
           city: 'Lisbon',
           date: '2026-11-07',
           stops: [
-            { id: 's1', time: '09:30', title: 'São Jorge Castle', kind: 'sight', durationMinutes: 90, note: null },
-            { id: 's2', time: '12:30', title: 'Lunch at Prado', kind: 'food', durationMinutes: null, note: 'Book ahead' },
+            { id: 's1', time: '09:30', title: 'São Jorge Castle', kind: 'sight', durationMinutes: 90, note: null, placeId: null, latitude: null, longitude: null },
+            { id: 's2', time: '12:30', title: 'Lunch at Prado', kind: 'food', durationMinutes: null, note: 'Book ahead', placeId: null, latitude: null, longitude: null },
           ],
         },
       },
@@ -104,6 +104,26 @@ describe('registry', () => {
       expect(html).toContain(text);
     }
     expect(html.indexOf('São Jorge Castle')).toBeLessThan(html.indexOf('Lunch at Prado'));
+    expect(html).not.toContain('Open in Google Maps'); // no coordinates, no link
+  });
+
+  it('links a DayItinerary whose stops have coordinates to Google Maps walking directions', () => {
+    const html = render({
+      component: {
+        type: 'DayItinerary',
+        props: {
+          title: 'A day in Alfama',
+          city: 'Lisbon',
+          date: null,
+          stops: [
+            { id: 's1', time: '09:30', title: 'São Jorge Castle', kind: 'sight', durationMinutes: 90, note: null, placeId: null, latitude: 38.7139, longitude: -9.1335 },
+            { id: 's2', time: '12:30', title: 'Lunch at Prado', kind: 'food', durationMinutes: null, note: null, placeId: null, latitude: 38.71, longitude: -9.1355 },
+          ],
+        },
+      },
+    });
+    expect(html).toContain('Open in Google Maps');
+    expect(html).toContain('href="https://www.google.com/maps/dir/?api=1&amp;origin=38.7139%2C-9.1335&amp;destination=38.71%2C-9.1355&amp;travelmode=walking"');
   });
 
   it('renders a MapView title and map credit, with the map itself loading lazily', () => {
