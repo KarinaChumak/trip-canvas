@@ -24,6 +24,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          show_full_output: true   # log Claude's turns; private repo, so the log is not public
           plugin_marketplaces: "https://github.com/anthropics/claude-code.git"
           plugins: "pr-review-toolkit@claude-code-plugins"
           prompt: |
@@ -31,7 +32,9 @@ jobs:
             The base branch is origin/${{ github.base_ref }}; compare HEAD against it.
 
             Run the /pr-review-toolkit:review-pr skill (use the Skill tool) with the arguments: code errors types tests
-            It launches review subagents; let them finish before writing the summary.
+            It launches review subagents. Run every one in the foreground (never set
+            run_in_background) and wait for its result: this job exits as soon as your
+            turn ends, so background agents are killed before they report.
 
             The summary lists issues only: no "Strengths" or "what's good" section, no praise.
             Group issues by severity (critical, important, minor), each with file:line,
