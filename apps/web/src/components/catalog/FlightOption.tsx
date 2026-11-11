@@ -9,7 +9,17 @@ import { cn } from '@/lib/utils';
 import { daysBetween, formatDay, formatDuration, formatPrice } from '@/lib/formatting-utils';
 
 // The airport dataset behind the city is ~300 KB gzipped, so it loads on the first layover shown.
-const LayoverCity = lazy(() => import('./LayoverCity').then(({ LayoverCity }) => ({ default: LayoverCity })));
+// The city is a nicety: if its chunk fails to load (offline, stale deploy), the stop keeps just its
+// code rather than the failed import taking the whole flight list down with it.
+const LayoverCity = lazy(() =>
+  import('./LayoverCity').then(
+    ({ LayoverCity }) => ({ default: LayoverCity }),
+    (error: unknown) => {
+      console.warn('Layover cities failed to load', error);
+      return { default: () => null };
+    },
+  ),
+);
 
 type FlightOptionProps = {
   flight: FlightOptionData;

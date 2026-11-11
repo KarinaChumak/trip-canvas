@@ -1,3 +1,4 @@
+import { UnknownAirportError } from 'airport-utils/errors';
 import { getAirportInfo } from 'airport-utils/info';
 
 type LayoverCityProps = {
@@ -19,8 +20,9 @@ export function LayoverCity({ airport }: LayoverCityProps) {
 function findAirportCity(code: string): string | null {
   try {
     return getAirportInfo(code.toUpperCase()).city || null;
-  } catch {
-    // UnknownAirportError
-    return null;
+  } catch (error) {
+    // Anything else is a real bug, e.g. a broken dataset, so it shouldn't pass for an unknown code.
+    if (error instanceof UnknownAirportError) return null;
+    throw error;
   }
 }
