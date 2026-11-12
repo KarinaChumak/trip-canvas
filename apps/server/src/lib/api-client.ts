@@ -1,3 +1,4 @@
+import { setTimeout as sleep } from 'node:timers/promises';
 import { startActiveObservation, updateActiveObservation } from '@langfuse/tracing';
 import { z } from 'zod';
 import type { Cache } from './cache.js';
@@ -19,7 +20,22 @@ export type ApiClientOptions = {
    * forbid storing their answers (Google, D-043).
    */
   cache?: { store: Cache; ttlSeconds: number };
+  /**
+   * HTTP statuses that get one more try after `delayMs`, for a service whose upstream
+   * sometimes fails for a moment (Ignav's 424 when an airline doesn't answer).
+   */
+  retry?: { statuses: number[]; delayMs: number };
 };
+
+/** A non-2xx answer, with its status so a retry can tell which ones are worth another try. */
+class HttpError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+  ) {
+    super(message);
+  }
+}
 
 export type ApiClient = {
   /**
@@ -76,11 +92,12 @@ export function createApiClient({
   minIntervalMs = 0,
   headers,
   secretParams,
+  retry,
 }: ApiClientOptions): ApiClient {
   // Only rate-limited services wait in line; the others run their calls in parallel.
   const enqueue = minIntervalMs > 0 ? createRequestQueue(minIntervalMs) : <T>(task: () => Promise<T>) => task();
 
-  async function fetchJson(url: URL, signal?: AbortSignal, init?: RequestInit): Promise<unknown> {
+  async function fetchOnce(url: URL, signal?: AbortSignal, init?: RequestInit): Promise<unknown> {
     // One span per real request, under the tool that made it. The path only: query
     // strings can hold keys. Without tracing set up, it just runs the callback.
     return startActiveObservation(`http ${service}`, async (span) => {
@@ -100,11 +117,23 @@ export function createApiClient({
         const body = (await res.text()).slice(0, 200);
         console.error(`[http] ${service} ${res.status} in ${ms} ms`, { body });
         span.update({ level: 'ERROR', statusMessage: `${res.status}: ${body}` });
-        throw new Error(`${service} returned ${res.status}: ${body}`);
+        throw new HttpError(`${service} returned ${res.status}: ${body}`, res.status);
       }
       console.log(`[http] ${service} ${res.status} in ${ms} ms`);
       return res.json();
     });
+  }
+
+  async function fetchJson(url: URL, signal?: AbortSignal, init?: RequestInit): Promise<unknown> {
+    try {
+      return await fetchOnce(url, signal, init);
+    } catch (err) {
+      if (!retry || !(err instanceof HttpError) || !retry.statuses.includes(err.status)) throw err;
+      console.warn(`[http] ${service} ${err.status}, trying once more in ${retry.delayMs} ms`);
+      // Stopping the reply also stops the wait.
+      await sleep(retry.delayMs, undefined, { signal });
+      return fetchOnce(url, signal, init);
+    }
   }
 
   // Calls on their way, by cache key: parallel tool calls for the same place (geocode

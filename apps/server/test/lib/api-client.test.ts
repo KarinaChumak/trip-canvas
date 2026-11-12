@@ -132,6 +132,39 @@ describe('createApiClient', () => {
     expect(maxInFlight).toBe(2);
   });
 
+  describe('retry', () => {
+    const retrying = () => createApiClient({ service: 'Test', retry: { statuses: [424], delayMs: 1 } });
+    const upstreamError = () => new Response('{"error":"upstream_error"}', { status: 424 });
+
+    it('tries once more on a listed status', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const fetch = stubFetch({ ok: 1 });
+      fetch.mockResolvedValueOnce(upstreamError());
+
+      expect(await retrying().postJson(new URL('https://api.test/x'), { a: 1 }, Ok)).toEqual({ ok: 1 });
+      expect(fetch).toHaveBeenCalledTimes(2);
+    });
+
+    it('gives up when the second try fails too', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const fetch = vi.fn(async () => upstreamError());
+      vi.stubGlobal('fetch', fetch);
+
+      await expect(retrying().getJson(new URL('https://api.test/x'), Ok)).rejects.toThrow('Test returned 424');
+      expect(fetch).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not retry other statuses', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      const fetch = stubFetch('Bad request', 400);
+
+      await expect(retrying().getJson(new URL('https://api.test/x'), Ok)).rejects.toThrow('Test returned 400');
+      expect(fetch).toHaveBeenCalledTimes(1);
+    });
+  });
+
   it('gives up after the timeout', async () => {
     // A fetch that never answers, only rejects when its signal aborts.
     vi.stubGlobal(

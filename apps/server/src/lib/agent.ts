@@ -1,6 +1,6 @@
 import { propagateAttributes } from '@langfuse/tracing';
 import { waitUntil } from '@vercel/functions';
-import { stepCountIs, streamText, toUIMessageStream, type LanguageModel, type StepResult } from 'ai';
+import { stepCountIs, streamText, toUIMessageStream, type LanguageModel, type StepResult, type TextStreamPart } from 'ai';
 import { EMIT_COMPONENT_TOOL } from '@trip-canvas/catalog/schema';
 import type { AgentTools } from '../tools/index.js';
 import type { ChatContext } from './context.js';
@@ -10,6 +10,17 @@ export const MAX_STEPS = 6;
 
 /** The first invalid component plus one retry; after that the model answers in text. */
 export const MAX_INVALID_COMPONENTS = 2;
+
+/**
+ * A failed tool call's error as the AI SDK words it in the tool result it sends the
+ * model (`getErrorMessage` of `@ai-sdk/provider`, which `ai` doesn't re-export).
+ */
+function describeToolError(error: unknown): string {
+  if (error == null) return 'unknown error';
+  if (typeof error === 'string') return error;
+  if (error instanceof Error) return error.toString();
+  return JSON.stringify(error);
+}
 
 /**
  * Tools for the next step. Once `emit_component` has failed validation
@@ -62,11 +73,28 @@ export function streamAgent({ model, tools, context, chatId, abortSignal, flushT
     telemetry: { functionId: 'chat' },
   }));
 
+  // Errors of our own tools (a throw in `execute`, or input that failed the schema).
+  // The model gets their message as the tool result, and the saved reply must keep that
+  // same text: the next turn replays it, and a changed tool result breaks the signature
+  // of every thinking block after it, so all later turns fail.
+  const toolErrors = new WeakSet<object>();
+  const stream = result.stream.pipeThrough(
+    new TransformStream<TextStreamPart<AgentTools>, TextStreamPart<AgentTools>>({
+      transform(part, controller) {
+        const isOwnToolError = (part.type === 'tool-error' && !part.providerExecuted) || (part.type === 'tool-call' && part.invalid);
+        if (isOwnToolError && part.error instanceof Object) toolErrors.add(part.error);
+        controller.enqueue(part);
+      },
+    }),
+  );
+
   return toUIMessageStream({
-    stream: result.stream,
+    stream,
     // webSearch's cited pages, shown under the reply.
     sendSources: true,
     onError: (error) => {
+      // The AI SDK's own wording of the error, as sent to the model.
+      if (error instanceof Object && toolErrors.has(error)) return describeToolError(error);
       console.error('[agent] stream error', error);
       // Never forward provider errors: they can echo request details.
       return 'The assistant could not answer. Please try again.';

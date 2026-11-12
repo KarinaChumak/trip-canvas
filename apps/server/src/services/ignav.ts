@@ -181,6 +181,8 @@ export function createIgnavClient({ apiKey, cache }: IgnavClientDeps): IgnavClie
     // In a header, so the key never reaches a URL, a log line or a cache key.
     headers: { 'X-Api-Key': apiKey },
     cache: { store: cache, ttlSeconds: 15 * 60 },
+    // A 424 means an airline didn't answer in time; the same search usually works seconds later.
+    retry: { statuses: [424], delayMs: 2_000 },
   });
 
   return {
